@@ -1,0 +1,1 @@
+export { PayButton, PayButtonProps } from './PayButton';
