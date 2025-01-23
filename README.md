@@ -129,33 +129,7 @@ export class AppComponent {
 
 ### Vue Integration
 
-For Vue users, the library provides a Vue component.
-
-#### Example
-
-```vue
-<template>
-  <MilestonPayButtonVue
-    buttonText="Pay Now"
-    :paymentUrl="'https://example.com/payment'"
-    :buttonStyle="{ backgroundColor: 'purple', color: 'white' }"
-    @onPaymentComplete="handlePaymentComplete"
-  />
-</template>
-
-<script>
-import { MilestonPayButtonVue } from 'mileston-pay-button/vue';
-
-export default {
-  components: { MilestonPayButtonVue },
-  methods: {
-    handlePaymentComplete() {
-      console.log('Payment complete!');
-    },
-  },
-};
-</script>
-```
+For Vue users, update is on the way. Feel free to open a PR.
 
 ---
 
