@@ -17,7 +17,7 @@ export default defineComponent({
       required: true,
     },
     buttonStyle: {
-      type: Object as PropType<Partial<CSSStyleDeclaration>>,
+      type: Object as PropType<Record<string, string | number>>,
       default: () => ({}),
     },
     onPaymentComplete: {
@@ -26,7 +26,7 @@ export default defineComponent({
     },
   },
   computed: {
-    computedStyles(): Partial<CSSStyleDeclaration> {
+    computedStyles(): Record<string, string | number> {
       return {
         padding: "10px 20px",
         fontSize: "16px",
