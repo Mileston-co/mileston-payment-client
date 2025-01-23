@@ -72,64 +72,13 @@ export default App;
 
 ### Angular Integration
 
-For Angular projects, the library includes a module and directive for easy integration.
-
-#### Step 1: Import the Module
-
-In your Angular app module, import `MilestonPayButtonModule`:
-
-```typescript
-import { NgModule } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
-import { AppComponent } from './app.component';
-import { MilestonPayButtonModule } from 'mileston-pay-button/angular';
-
-@NgModule({
-  declarations: [AppComponent],
-  imports: [BrowserModule, MilestonPayButtonModule],
-  bootstrap: [AppComponent],
-})
-export class AppModule {}
-```
-
-#### Step 2: Use the Directive
-
-In your component template, use the `mileston-pay-button` directive:
-
-```html
-<div
-  mileston-pay-button
-  [buttonText]="'Pay Now'"
-  [paymentUrl]="'https://example.com/payment'"
-  (onPaymentComplete)="handlePaymentComplete()"
-  [buttonStyle]="{ backgroundColor: 'red', color: 'white' }"
-></div>
-```
-
-#### Step 3: Handle Events
-
-In your component class:
-
-```typescript
-import { Component } from '@angular/core';
-
-@Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css'],
-})
-export class AppComponent {
-  handlePaymentComplete() {
-    console.log('Payment complete!');
-  }
-}
-```
+For Angular projects, components updates coming soon but you utilize the class. Feel free to opne a PR.
 
 ---
 
 ### Vue Integration
 
-For Vue users, update is on the way. Feel free to open a PR.
+For Vue users, components updates coming soon but you utilize the class. Feel free to opne a PR.
 
 ---
 
