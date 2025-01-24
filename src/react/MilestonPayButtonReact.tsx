@@ -1,26 +1,23 @@
-import type React from "react"
-import { useState, useCallback } from "react"
+import React, { useState, useCallback } from 'react';
 
 /**
  * Props for the PayButton component
  */
 export interface PayButtonProps {
   /** Text to display on the button */
-  children: React.ReactNode
+  children: React.ReactNode;
   /** Function to call when payment is complete */
-  onPaymentComplete: () => void
+  onPaymentComplete: () => void;
   /** Function to call when payment fails */
-  onPaymentError: (error: Error) => void
+  onPaymentError: (error: Error) => void;
   /** Custom styles for the button */
-  style?: React.CSSProperties
+  style?: React.CSSProperties;
   /** Custom class name for the button */
-  className?: string
+  className?: string;
   /** URL for the payment page */
-  paymentUrl?: string
+  paymentUrl?: string;
   /** Type of payment */
-  paymentType?: "payment-link" | "invoice" | "recurring-payment"
-  /** ID of the payment */
-  paymentId?: string
+  paymentType?: 'payment-link' | 'invoice' | 'recurring-payment';
 }
 
 /**
@@ -34,129 +31,115 @@ export const PayButton: React.FC<PayButtonProps> = ({
   className,
   paymentUrl,
   paymentType,
-  paymentId,
 }) => {
-  const [isLoading, setIsLoading] = useState(false)
-  const [isVerifying, setIsVerifying] = useState(false)
-  const [isComplete, setIsComplete] = useState(false)
-
-  const extractPaymentInfo = (url: string): { type: string; id: string } => {
-    const match = url.match(/\/([^/]+)\/([^/]+)$/)
-    return match ? { type: match[1], id: match[2] } : { type: "", id: "" }
-  }
+  const [isLoading, setIsLoading] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [isComplete, setIsComplete] = useState(false);
 
   const getVerificationEndpoint = (type: string): string => {
     switch (type) {
-      case "invoice":
-        return "https://invoice-service.mileston.co/invoice/verify"
-      case "payment-link":
-        return "https://payment-service.mileston.co/payment-link/verify"
-      case "recurring-payment":
-        return "https://recurring-service.mileston.co/recurring-payment/verify"
+      case 'invoice':
+        return 'https://invoice-service.mileston.co/invoice/verify';
+      case 'payment-link':
+        return 'https://payment-service.mileston.co/payment-link/verify';
+      case 'recurring-payment':
+        return 'https://recurring-service.mileston.co/recurring-payment/verify';
       default:
-        throw new Error("Invalid payment type")
+        throw new Error('Invalid payment type');
     }
-  }
+  };
 
   const verifyPayment = useCallback(async (type: string, id: string, walletAddress: string) => {
     try {
-      const endpoint = getVerificationEndpoint(type)
+      const endpoint = getVerificationEndpoint(type);
       const response = await fetch(endpoint, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({ walletAddress, id }),
-      })
+      });
       if (!response.ok) {
-        throw new Error("Payment verification request failed")
+        throw new Error('Payment verification request failed');
       }
-      const data = await response.json()
+      const data = await response.json();
       if (data.success) {
-        return true
+        return true;
       } else if (data.error) {
-        return false
+        return false;
       } else {
-        throw new Error("Invalid response from verification endpoint")
+        throw new Error('Invalid response from verification endpoint');
       }
     } catch (error) {
-      console.error("Error verifying payment:", error)
-      throw error
+      console.error('Error verifying payment:', error);
+      throw error;
     }
-  }, [])
+  }, []);
 
   const handlePayWithMileston = useCallback(async () => {
-    setIsLoading(true)
+    setIsLoading(true);
 
     try {
-      const popupWidth = 500
-      const popupHeight = 500
+      const popupWidth = 500;
+      const popupHeight = 500;
 
-      const screenWidth = window.innerWidth || document.documentElement.clientWidth || screen.width
-      const screenHeight = window.innerHeight || document.documentElement.clientHeight || screen.height
+      const screenWidth = window.innerWidth || document.documentElement.clientWidth || screen.width;
+      const screenHeight = window.innerHeight || document.documentElement.clientHeight || screen.height;
 
-      const systemLeft = (screenWidth - popupWidth) / 2
-      const systemTop = (screenHeight - popupHeight) / 2
+      const systemLeft = (screenWidth - popupWidth) / 2;
+      const systemTop = (screenHeight - popupHeight) / 2;
 
-      const url =
-        paymentUrl ||
-        (paymentType && paymentId
-          ? `https://checkout.mileston.co/${paymentType}/${paymentId}`
-          : "https://demo.mileston.co/pay")
-
-      const { type, id } = paymentType && paymentId ? { type: paymentType, id: paymentId } : extractPaymentInfo(url)
+      const url = paymentUrl || (paymentType
+        ? `https://checkout.mileston.co/${paymentType}`
+        : 'https://demo.mileston.co/pay');
 
       const authWindow = window.open(
         url,
         "_blank",
-        `width=${popupWidth},height=${popupHeight},toolbar=no,menubar=no,scrollbars=yes,resizable=no,top=${systemTop},left=${systemLeft}`,
-      )
+        `width=${popupWidth},height=${popupHeight},toolbar=no,menubar=no,scrollbars=yes,resizable=no,top=${systemTop},left=${systemLeft}`
+      );
 
       if (authWindow) {
-        window.addEventListener(
-          "message",
-          async (event) => {
-            if (event.origin === "https://checkout.mileston.co" && event.data.walletAddress) {
-              authWindow.close()
-              setIsVerifying(true)
-              try {
-                const success = await verifyPayment(type, id, event.data.walletAddress)
-                if (success) {
-                  setIsComplete(true)
-                  onPaymentComplete()
-                } else {
-                  throw new Error("Payment was not successful")
-                }
-              } catch (error) {
-                onPaymentError(error as Error)
-              } finally {
-                setIsVerifying(false)
-                setIsLoading(false)
+        window.addEventListener('message', async (event) => {
+          if (event.origin === 'https://checkout.mileston.co' && event.data.walletAddress && event.data.paymentId) {
+            authWindow.close();
+            setIsVerifying(true);
+            try {
+              const success = await verifyPayment(paymentType || 'payment-link', event.data.paymentId, event.data.walletAddress);
+              if (success) {
+                setIsComplete(true);
+                onPaymentComplete();
+              } else {
+                throw new Error('Payment was not successful');
               }
+            } catch (error) {
+              onPaymentError(error as Error);
+            } finally {
+              setIsVerifying(false);
+              setIsLoading(false);
             }
-          },
-          { once: true },
-        )
+          }
+        }, { once: true });
 
         const timer = setInterval(() => {
           if (authWindow.closed) {
-            clearInterval(timer)
-            setIsLoading(false)
+            clearInterval(timer);
+            setIsLoading(false);
           }
-        }, 500)
+        }, 500);
       }
     } catch (error) {
-      console.error("Error in payment flow:", error)
-      onPaymentError(error as Error)
-      setIsLoading(false)
+      console.error("Error in payment flow:", error);
+      onPaymentError(error as Error);
+      setIsLoading(false);
     }
-  }, [paymentUrl, paymentType, paymentId, verifyPayment, onPaymentComplete, onPaymentError])
+  }, [paymentUrl, paymentType, verifyPayment, onPaymentComplete, onPaymentError]);
 
-  let buttonText = children
+  let buttonText = children;
   if (isVerifying) {
-    buttonText = "Verifying Payment"
+    buttonText = 'Verifying Payment';
   } else if (isComplete) {
-    buttonText = "Payment Complete"
+    buttonText = 'Payment Complete';
   }
 
   return (
@@ -166,9 +149,10 @@ export const PayButton: React.FC<PayButtonProps> = ({
       className={className}
       disabled={isLoading || isVerifying || isComplete}
     >
-      {isLoading || isVerifying ? <span className="loading-icon">⟳</span> : null}
+      {isLoading || isVerifying ? (
+        <span className="loading-icon">⟳</span>
+      ) : null}
       {buttonText}
     </button>
-  )
-}
-
+  );
+};

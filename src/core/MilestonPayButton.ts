@@ -1,7 +1,6 @@
 export interface MilestonPayButtonOptions {
   paymentUrl?: string
   paymentType?: "payment-link" | "invoice" | "recurring-payment"
-  paymentId?: string
   onPaymentComplete: () => void
   onPaymentError: (error: Error) => void
 }
@@ -17,11 +16,6 @@ export class MilestonPayButton {
     this.button = buttonElement
     this.options = options
     this.button.addEventListener("click", this.handleClick.bind(this))
-  }
-
-  private extractPaymentInfo(url: string): { type: string; id: string } {
-    const match = url.match(/\/([^/]+)\/([^/]+)$/)
-    return match ? { type: match[1], id: match[2] } : { type: "", id: "" }
   }
 
   private getVerificationEndpoint(type: string): string {
@@ -82,14 +76,9 @@ export class MilestonPayButton {
 
       const url =
         this.options.paymentUrl ||
-        (this.options.paymentType && this.options.paymentId
-          ? `https://checkout.mileston.co/${this.options.paymentType}/${this.options.paymentId}`
+        (this.options.paymentType
+          ? `https://checkout.mileston.co/${this.options.paymentType}`
           : "https://demo.mileston.co/pay")
-
-      const { type, id } =
-        this.options.paymentType && this.options.paymentId
-          ? { type: this.options.paymentType, id: this.options.paymentId }
-          : this.extractPaymentInfo(url)
 
       const authWindow = window.open(
         url,
@@ -101,12 +90,16 @@ export class MilestonPayButton {
         window.addEventListener(
           "message",
           async (event) => {
-            if (event.origin === "https://checkout.mileston.co" && event.data.walletAddress) {
+            if (event.origin === "https://checkout.mileston.co" && event.data.walletAddress && event.data.paymentId) {
               authWindow.close()
               this.isVerifying = true
               this.updateButtonState()
               try {
-                const success = await this.verifyPayment(type, id, event.data.walletAddress)
+                const success = await this.verifyPayment(
+                  this.options.paymentType || "payment-link",
+                  event.data.paymentId,
+                  event.data.walletAddress,
+                )
                 if (success) {
                   this.isComplete = true
                   this.options.onPaymentComplete()
