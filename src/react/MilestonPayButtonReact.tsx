@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { Loader2 } from 'lucide-react';
 
 /**
  * Props for the PayButton component
@@ -16,6 +17,8 @@ export interface PayButtonProps {
   className?: string;
   /** URL for the payment page */
   paymentUrl?: string;
+  /** Id for the payment page */
+  paymentId?: string;
   /** Type of payment */
   paymentType?: 'payment-link' | 'invoice' | 'recurring-payment';
 }
@@ -30,6 +33,7 @@ export const PayButton: React.FC<PayButtonProps> = ({
   style,
   className,
   paymentUrl,
+  paymentId,
   paymentType,
 }) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -63,13 +67,7 @@ export const PayButton: React.FC<PayButtonProps> = ({
         throw new Error('Payment verification request failed');
       }
       const data = await response.json();
-      if (data.success) {
-        return true;
-      } else if (data.error) {
-        return false;
-      } else {
-        throw new Error('Invalid response from verification endpoint');
-      }
+      return data.success || false;
     } catch (error) {
       console.error('Error verifying payment:', error);
       throw error;
@@ -78,69 +76,65 @@ export const PayButton: React.FC<PayButtonProps> = ({
 
   const handlePayWithMileston = useCallback(async () => {
     setIsLoading(true);
+    const popupWidth = 500;
+    const popupHeight = 500;
+    const screenWidth = window.innerWidth || document.documentElement.clientWidth || screen.width;
+    const screenHeight = window.innerHeight || document.documentElement.clientHeight || screen.height;
+    const systemLeft = (screenWidth - popupWidth) / 2;
+    const systemTop = (screenHeight - popupHeight) / 2;
 
-    try {
-      const popupWidth = 500;
-      const popupHeight = 500;
+    const url = `${paymentUrl}?parentOrigin=${encodeURIComponent(window.location.origin)}` || (paymentType && paymentId
+      ? `https://checkout.mileston.co/${paymentType}/${paymentId}?parentOrigin=${encodeURIComponent(window.location.origin)}`
+      : 'https://demo.mileston.co/pay');
 
-      const screenWidth = window.innerWidth || document.documentElement.clientWidth || screen.width;
-      const screenHeight = window.innerHeight || document.documentElement.clientHeight || screen.height;
+    const authWindow = window.open(
+      url,
+      "_blank",
+      `width=${popupWidth},height=${popupHeight},toolbar=no,menubar=no,scrollbars=yes,resizable=no,top=${systemTop},left=${systemLeft}`
+    );
 
-      const systemLeft = (screenWidth - popupWidth) / 2;
-      const systemTop = (screenHeight - popupHeight) / 2;
+    if (authWindow) {
+      const messageHandler = async (event: MessageEvent) => {
+        if (event.origin !== 'https://checkout.mileston.co') return;
 
-      const url = paymentUrl || (paymentType
-        ? `https://checkout.mileston.co/${paymentType}`
-        : 'https://demo.mileston.co/pay');
-
-      const authWindow = window.open(
-        url,
-        "_blank",
-        `width=${popupWidth},height=${popupHeight},toolbar=no,menubar=no,scrollbars=yes,resizable=no,top=${systemTop},left=${systemLeft}`
-      );
-
-      if (authWindow) {
-        window.addEventListener('message', async (event) => {
-          if (event.origin === 'https://checkout.mileston.co' && event.data.walletAddress && event.data.paymentId) {
-            authWindow.close();
+        if (event.data.walletAddress && event.data.paymentId) {
+          try {
             setIsVerifying(true);
-            try {
-              const success = await verifyPayment(paymentType || 'payment-link', event.data.paymentId, event.data.walletAddress);
-              if (success) {
-                setIsComplete(true);
-                onPaymentComplete();
-              } else {
-                throw new Error('Payment was not successful');
-              }
-            } catch (error) {
-              onPaymentError(error as Error);
-            } finally {
-              setIsVerifying(false);
-              setIsLoading(false);
+            const success = await verifyPayment(
+              paymentType || 'payment-link',
+              event.data.paymentId,
+              event.data.walletAddress
+            );
+            authWindow.close();
+            if (success) {
+              setIsComplete(true);
+              onPaymentComplete();
+            } else {
+              throw new Error('Payment verification failed');
             }
-          }
-        }, { once: true });
-
-        const timer = setInterval(() => {
-          if (authWindow.closed) {
-            clearInterval(timer);
+          } catch (error) {
+            onPaymentError(error as Error);
+          } finally {
+            setIsVerifying(false);
             setIsLoading(false);
           }
-        }, 500);
-      }
-    } catch (error) {
-      console.error("Error in payment flow:", error);
-      onPaymentError(error as Error);
+        }
+      };
+
+      window.addEventListener('message', messageHandler, false);
+
+      const timer = setInterval(() => {
+        if (authWindow.closed) {
+          clearInterval(timer);
+          window.removeEventListener('message', messageHandler);
+          setIsLoading(false);
+        }
+      }, 500);
+    } else {
+      console.error('Failed to open payment popup');
       setIsLoading(false);
     }
   }, [paymentUrl, paymentType, verifyPayment, onPaymentComplete, onPaymentError]);
-
-  let buttonText = children;
-  if (isVerifying) {
-    buttonText = 'Verifying Payment';
-  } else if (isComplete) {
-    buttonText = 'Payment Complete';
-  }
 
   return (
     <button
@@ -150,9 +144,24 @@ export const PayButton: React.FC<PayButtonProps> = ({
       disabled={isLoading || isVerifying || isComplete}
     >
       {isLoading || isVerifying ? (
-        <span className="loading-icon">⟳</span>
-      ) : null}
-      {buttonText}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Loader2
+            style={{
+              animation: 'spin 1s linear infinite',
+              marginRight: '8px', // This replaces `mr-2`
+            }}
+          />
+          {isVerifying ? 'Verifying Payment' : 'Processing Payment...'}
+        </div>
+      ) : (
+        children
+      )}
     </button>
   );
 };
