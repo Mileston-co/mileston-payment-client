@@ -3,6 +3,7 @@ export interface MilestonPayButtonOptions {
   paymentId?: string;
   paymentType?: "payment-link" | "invoice" | "recurring-payment";
   onPaymentComplete: () => void;
+  onPaymentDataReceived: (data: { walletAddress: string, id: string }) => void;
   onPaymentError: (error: Error) => void;
 }
 
@@ -75,7 +76,7 @@ export class MilestonPayButton {
       const origin = encodeURIComponent(window.location.origin)
 
       const url =
-        `${this.options.paymentUrl}?parentOrigin=${origin}`||
+        `${this.options.paymentUrl}?parentOrigin=${origin}` ||
         (this.options.paymentType && this.options.paymentId
           ? `https://checkout.mileston.co/${this.options.paymentType}/${this.options.paymentId}?parentOrigin=${origin}`
           : "https://demo.mileston.co/pay");
@@ -96,6 +97,10 @@ export class MilestonPayButton {
               this.updateButtonState();
 
               try {
+                this.options.onPaymentDataReceived({
+                  walletAddress: event.data.walletAddress,
+                  id: event.data.id,
+                })
                 const success = await this.verifyPayment(
                   this.options.paymentType || "payment-link",
                   event.data.paymentId,

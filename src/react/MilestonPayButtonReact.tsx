@@ -9,6 +9,12 @@ export interface PayButtonProps {
   children: React.ReactNode;
   /** Function to call when payment is complete */
   onPaymentComplete: () => void;
+  /** Function to call when payment data is received from opened window before verification.
+   * In case if payment verification failed due to network issues or other issues, 
+   * you can immediately save the data and recall the verification 
+   * endpoints you will find in our doc to verify payments and give value to your users.
+   */
+  onPaymentDataRecieved: (data: { walletAddress: string, id: string }) => void;
   /** Function to call when payment fails */
   onPaymentError: (error: Error) => void;
   /** Custom styles for the button */
@@ -29,6 +35,7 @@ export interface PayButtonProps {
 export const PayButton: React.FC<PayButtonProps> = ({
   children,
   onPaymentComplete,
+  onPaymentDataRecieved,
   onPaymentError,
   style,
   className,
@@ -99,6 +106,10 @@ export const PayButton: React.FC<PayButtonProps> = ({
 
         if (event.data.walletAddress && event.data.paymentId) {
           try {
+            onPaymentDataRecieved({
+              walletAddress: event.data.walletAddress,
+              id: event.data.paymentId,
+            });
             setIsVerifying(true);
             const success = await verifyPayment(
               paymentType || 'payment-link',
