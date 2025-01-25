@@ -1,6 +1,6 @@
 # Mileston Payment Client
 
-Mileston Payment Client is a versatile payment button component library designed for seamless integration into projects using plain JavaScript, React, Angular, and Vue. It provides a customizable button that triggers a payment popup and notifies you when the payment process is complete. Other components would be added in future updates. Feel free to open a PR!
+Mileston Payment Client is a versatile payment button component library designed for seamless integration into projects using plain JavaScript, React, Angular, and Vue. It provides a customizable button that triggers a payment popup and notifies you when the payment process is complete. Other components will be added in future updates. Feel free to open a PR!
 Contact [tomiwaphilip@mileston.co](mailto:tomiwaphilip@mileston.co) if you have any issues integrating this.
 
 ## Installation
@@ -22,7 +22,7 @@ For plain JavaScript users, the library provides the `MilestonPayButton` class t
 #### Example
 
 ```javascript
-import { MilestonPayButton } from 'mileston-pay-button';
+import { MilestonPayButton } from 'mileston-payment-client';
 
 const container = document.getElementById('payment-button-container');
 
@@ -50,17 +50,18 @@ For React projects, the library provides a dedicated React component.
 
 ```tsx
 import React from 'react';
-import { MilestonPayButtonReact } from 'mileston-pay-button/react';
+import { PayButton } from 'mileston-payment-client';
 
 function App() {
   return (
     <div>
-      <MilestonPayButtonReact
-        buttonText="Pay Now"
+      <PayButton
         onPaymentComplete={() => console.log('Payment complete!')}
-        paymentUrl="https://example.com/payment"
+        paymentUrl="https://checkout.mileston.co/payment"
         buttonStyle={{ backgroundColor: 'green', color: 'white' }}
-      />
+      >
+        Pay Now
+      </PayButton>
     </div>
   );
 }
@@ -72,13 +73,67 @@ export default App;
 
 ### Angular Integration
 
-For Angular projects, components updates coming soon but you utilize the class. Feel free to opne a PR.
+For Angular projects, the library provides a dedicated Angular component.
+
+#### Example
+
+```typescript
+import { Component } from '@angular/core';
+import { MilestonPayButton } from 'mileston-payment-client';
+
+@Component({
+  selector: 'app-root',
+  template: `<div id="payment-button-container"></div>`,
+})
+export class AppComponent {
+  ngOnInit() {
+    const container = document.getElementById('payment-button-container');
+
+    const payButton = new MilestonPayButton({
+      container,
+      buttonText: 'Pay Now',
+      onPaymentComplete: () => {
+        console.log('Payment complete!');
+      },
+      paymentUrl: 'https://example.com/payment',
+    });
+  }
+}
+```
 
 ---
 
 ### Vue Integration
 
-For Vue users, components updates coming soon but you utilize the class. Feel free to opne a PR.
+For Vue projects, the library provides a dedicated Vue component.
+
+#### Example
+
+```vue
+<template>
+  <div id="payment-button-container"></div>
+</template>
+
+<script>
+import { MilestonPayButton } from 'mileston-payment-client';
+
+export default {
+  name: 'App',
+  mounted() {
+    const container = this.$el.querySelector('#payment-button-container');
+
+    const payButton = new MilestonPayButton({
+      container,
+      buttonText: 'Pay Now',
+      onPaymentComplete: () => {
+        console.log('Payment complete!');
+      },
+      paymentUrl: 'https://example.com/payment',
+    });
+  },
+};
+</script>
+```
 
 ---
 
