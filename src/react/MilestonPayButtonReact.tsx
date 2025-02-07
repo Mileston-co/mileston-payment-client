@@ -17,6 +17,8 @@ export interface PayButtonProps {
   onPaymentDataRecieved: (data: { walletAddress: string, id: string }) => void;
   /** Function to call when payment fails */
   onPaymentError: (error: Error) => void;
+  /** Set a theme for the checkout page. Defaults to light or system settings */
+  theme: 'dark' | 'light'
   /** Custom styles for the button */
   style?: React.CSSProperties;
   /** Custom class name for the button */
@@ -37,6 +39,7 @@ export const PayButton: React.FC<PayButtonProps> = ({
   onPaymentComplete,
   onPaymentDataRecieved,
   onPaymentError,
+  theme = 'light',
   style,
   className,
   paymentUrl,
@@ -91,7 +94,7 @@ export const PayButton: React.FC<PayButtonProps> = ({
     const systemTop = (screenHeight - popupHeight) / 2;
 
     const url = `${paymentUrl}?parentOrigin=${encodeURIComponent(window.location.origin)}` || (paymentType && paymentId
-      ? `https://checkout.mileston.co/${paymentType}/${paymentId}?parentOrigin=${encodeURIComponent(window.location.origin)}`
+      ? `https://checkout.mileston.co/${paymentType}/${paymentId}?parentOrigin=${encodeURIComponent(window.location.origin)}?theme=${theme}`
       : 'https://demo.mileston.co/pay');
 
     const authWindow = window.open(

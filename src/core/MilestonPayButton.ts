@@ -5,6 +5,7 @@ export interface MilestonPayButtonOptions {
   onPaymentComplete: () => void;
   onPaymentDataReceived: (data: { walletAddress: string, id: string }) => void;
   onPaymentError: (error: Error) => void;
+  theme: 'dark' | 'light';
 }
 
 export class MilestonPayButton {
@@ -78,7 +79,7 @@ export class MilestonPayButton {
       const url =
         `${this.options.paymentUrl}?parentOrigin=${origin}` ||
         (this.options.paymentType && this.options.paymentId
-          ? `https://checkout.mileston.co/${this.options.paymentType}/${this.options.paymentId}?parentOrigin=${origin}`
+          ? `https://checkout.mileston.co/${this.options.paymentType}/${this.options.paymentId}?parentOrigin=${origin}?theme=${this.options.theme}`
           : "https://demo.mileston.co/pay");
 
       const authWindow = window.open(
