@@ -120,3 +120,15 @@ export interface RecurringPaymentData {
 }
 
 
+export type env = 'test' | 'prod'
+
+export type evmType = 'avax' | 'pol' | 'base' | 'eth' | 'arb'
+
+
+export interface PayWithWalletConnect {
+    evm: evmType;
+    env: env;
+    amount: string;
+    recipientAddress: string;
+    token: 'AVAX' | 'POL' | 'ETH' | 'USDC' | 'USDT'
+}
