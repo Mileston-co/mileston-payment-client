@@ -37,7 +37,6 @@ export interface PayButtonProps {
 export const PayButton: React.FC<PayButtonProps> = ({
   children,
   onPaymentComplete,
-  onPaymentDataRecieved,
   onPaymentError,
   theme = 'light',
   style,
@@ -47,42 +46,7 @@ export const PayButton: React.FC<PayButtonProps> = ({
   paymentType,
 }) => {
   const [isLoading, setIsLoading] = useState(false);
-  const [isVerifying, setIsVerifying] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
-
-  const getVerificationEndpoint = (type: string): string => {
-    switch (type) {
-      case 'invoice':
-        return 'https://invoice-service.mileston.co/invoice/verify';
-      case 'payment-link':
-        return 'https://payment-service.mileston.co/payment-link/verify';
-      case 'recurring-payment':
-        return 'https://recurring-service.mileston.co/recurring-payment/verify';
-      default:
-        throw new Error('Invalid payment type');
-    }
-  };
-
-  const verifyPayment = useCallback(async (type: string, id: string, walletAddress: string) => {
-    try {
-      const endpoint = getVerificationEndpoint(type);
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ walletAddress, id }),
-      });
-      if (!response.ok) {
-        throw new Error('Payment verification request failed');
-      }
-      const data = await response.json();
-      return data.success || false;
-    } catch (error) {
-      console.error('Error verifying payment:', error);
-      throw error;
-    }
-  }, []);
 
   const handlePayWithMileston = useCallback(async () => {
     setIsLoading(true);
@@ -107,29 +71,22 @@ export const PayButton: React.FC<PayButtonProps> = ({
       const messageHandler = async (event: MessageEvent) => {
         if (event.origin !== 'https://checkout.mileston.co') return;
 
-        if (event.data.walletAddress && event.data.paymentId) {
+        if (event.data.isPaymentComplete) {
           try {
-            onPaymentDataRecieved({
-              walletAddress: event.data.walletAddress,
-              id: event.data.paymentId,
-            });
-            setIsVerifying(true);
-            const success = await verifyPayment(
-              paymentType || 'payment-link',
-              event.data.paymentId,
-              event.data.walletAddress
-            );
             authWindow.close();
-            if (success) {
-              setIsComplete(true);
-              onPaymentComplete();
-            } else {
-              throw new Error('Payment verification failed');
-            }
+            setIsComplete(true);
+            onPaymentComplete();
           } catch (error) {
             onPaymentError(error as Error);
           } finally {
-            setIsVerifying(false);
+            setIsLoading(false);
+          }
+        } else {
+          try {
+            throw new Error("An error occurred during payment");
+          } catch (error) {
+            onPaymentError(error as Error);
+          } finally {
             setIsLoading(false);
           }
         }
@@ -148,16 +105,16 @@ export const PayButton: React.FC<PayButtonProps> = ({
       console.error('Failed to open payment popup');
       setIsLoading(false);
     }
-  }, [paymentUrl, paymentType, verifyPayment, onPaymentComplete, onPaymentError]);
+  }, [paymentUrl, paymentType, onPaymentComplete, onPaymentError]);
 
   return (
     <button
       onClick={handlePayWithMileston}
       style={style}
       className={className}
-      disabled={isLoading || isVerifying || isComplete}
+      disabled={isLoading || isComplete}
     >
-      {isLoading || isVerifying ? (
+      {isLoading ? (
         <div
           style={{
             display: 'flex',
@@ -171,7 +128,7 @@ export const PayButton: React.FC<PayButtonProps> = ({
               marginRight: '8px', // This replaces `mr-2`
             }}
           />
-          {isVerifying ? 'Verifying Payment' : 'Processing Payment...'}
+          {'Processing Payment...'}
         </div>
       ) : (
         children
