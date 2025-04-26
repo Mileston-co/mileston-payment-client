@@ -1,2 +1,3 @@
-export { PayButton, PayButtonProps } from './react/MilestonPayButtonReact';
-export { MilestonPayButton, MilestonPayButtonOptions } from './core/MilestonPayButton';
+export { PayButton } from './react/MilestonPayButtonReact';
+export { MilestonPayButton } from './core/MilestonPayButton';
+export * from './types'

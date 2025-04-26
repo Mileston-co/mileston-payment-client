@@ -1,11 +1,4 @@
-export interface MilestonPayButtonOptions {
-  paymentUrl?: string;
-  paymentId?: string;
-  paymentType?: "payment-link" | "invoice" | "recurring-payment";
-  onPaymentComplete: () => void;
-  onPaymentError: (error: Error) => void;
-  theme: 'dark' | 'light';
-}
+import { MilestonPayButtonOptions } from "../types";
 
 export class MilestonPayButton {
   private options: MilestonPayButtonOptions;
