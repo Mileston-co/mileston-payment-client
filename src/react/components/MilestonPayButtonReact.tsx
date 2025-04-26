@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { Loader2 } from 'lucide-react';
-import { PayButtonProps } from '../types';
+import { PayButtonProps } from '../../types';
 
 /**
  * A customizable payment button that opens a popup for processing payments
