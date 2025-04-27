@@ -27,3 +27,225 @@ export interface PayButtonProps {
     /** Type of payment */
     paymentType?: 'payment-link' | 'invoice' | 'recurring-payment';
 }
+
+export interface Theme {
+    colorScheme: "light" | "dark" | "system"
+    primaryColor?: string
+    secondaryColor?: string
+    backgroundColor?: string
+    textColor?: string
+}
+
+/**
+ * Represents a blockchain network
+ */
+export interface BlockchainNetwork {
+    /** Unique identifier for the network */
+    id: string
+    /** Display name of the network */
+    name: string
+    /** Optional URL to the network's icon */
+    icon?: string
+}
+
+/**
+ * Represents a token option for payment
+ */
+export interface TokenOption {
+    /** Unique identifier for the token */
+    id: string
+    /** Full name of the token */
+    name: string
+    /** Symbol of the token (e.g., ETH, BTC) */
+    symbol: string
+    /** Optional URL to the token's icon */
+    icon?: string
+    /** ID of the network this token belongs to */
+    networkId: string
+}
+
+/**
+ * Represents a subscription plan
+ */
+export interface SubscriptionPlan {
+    /** Unique identifier for the plan */
+    id: string
+    /** Name of the subscription plan */
+    name: string
+    /** Optional description of the plan */
+    description?: string
+    /** Billing interval (daily, weekly, monthly, yearly) */
+    interval: "daily" | "weekly" | "monthly" | "yearly"
+    /** Number of intervals between billings (e.g., 1 for monthly, 3 for quarterly) */
+    intervalCount: number
+    /** Price amount for the subscription */
+    amount: number
+    /** Currency code (e.g., USD, EUR) */
+    currency?: string
+}
+
+/**
+ * Common props for payment method components
+ */
+export interface PaymentMethodProps {
+    /** Available blockchain networks */
+    networks: BlockchainNetwork[]
+    /** Available tokens for payment */
+    tokens: TokenOption[]
+    /** URL for card payment iframe */
+    cardPaymentUrl?: string
+    /** Callback for wallet connect payment */
+    onWalletConnectPayment?: (networkId: string, tokenId: string) => void
+    /** Callback for QR code payment */
+    onQrCodePayment?: (networkId: string, tokenId: string) => void
+    /** Custom text for wallet connect button */
+    walletConnectButtonText?: string
+    /** Custom text for QR code button */
+    qrCodeButtonText?: string
+    /** Custom text for card payment button */
+    cardButtonText?: string
+    /** Additional CSS class name for buttons */
+    buttonClassName?: string
+    /** Wallet address for QR code payment */
+    walletAddress?: string
+    /** Title for card payment dialog */
+    dialogTitle?: string
+    /** Description for card payment dialog */
+    dialogDescription?: string
+}
+
+/**
+ * Props for the Subscription Checkout component.
+ * Extends the PaymentMethodProps interface to include additional properties
+ * specific to subscription checkout functionality.
+ *
+ * @interface SubscriptionCheckoutProps
+ * @extends PaymentMethodProps
+ * 
+ * @property {string} businessName - The name of the business associated with the subscription.
+ * @property {string} [businessLogo] - Optional URL or path to the business logo.
+ * @property {SubscriptionPlan} plan - The subscription plan details.
+ * @property {string} [className] - Optional CSS class name for custom styling.
+ * @property {string} [footerText] - Optional text to display in the footer of the component.
+ * @property {string} [cancelText] - Optional text for the cancel button.
+ */
+export interface SubscriptionCheckoutProps extends PaymentMethodProps {
+    businessName: string
+    businessLogo?: string
+    plan: SubscriptionPlan
+    className?: string
+    footerText?: string
+    cancelText?: string
+}
+
+/**
+ * Interface representing the properties for the PaymentOptions component.
+ * Extends the `PaymentMethodProps` interface.
+ *
+ * @property {("wallet" | "qrcode" | "card")} [defaultTab] - Specifies the default tab to be selected.
+ *     Can be one of "wallet", "qrcode", or "card".
+ * @property {(tab: string) => void} [onTabChange] - Callback function triggered when the tab changes.
+ *     Receives the new tab as a string parameter.
+ */
+export interface PaymentOptionsProps extends PaymentMethodProps {
+    defaultTab?: "wallet" | "qrcode" | "card"
+    onTabChange?: (tab: string) => void
+}
+
+/**
+ * Interface representing the properties for the Invoice Checkout component.
+ * Extends the `PaymentMethodProps` interface to include additional details
+ * specific to invoice checkout functionality.
+ *
+ * @extends PaymentMethodProps
+ *
+ * @property {string} businessName - The name of the business associated with the invoice.
+ * @property {string} [businessLogo] - Optional URL or path to the business logo.
+ * @property {string} invoiceId - Unique identifier for the invoice.
+ * @property {number} amount - The total amount to be paid for the invoice.
+ * @property {string} [currency] - Optional currency code (e.g., USD, EUR) for the payment.
+ * @property {string} [description] - Optional description or details about the invoice.
+ * @property {string} [className] - Optional CSS class name for custom styling.
+ * @property {string} [footerText] - Optional text to display in the footer of the component.
+ */
+export interface InvoiceCheckoutProps extends PaymentMethodProps {
+    businessName: string
+    businessLogo?: string
+    invoiceId: string
+    amount: number
+    currency?: string
+    description?: string
+    className?: string
+    footerText?: string
+}
+
+/**
+ * Props for the QR Code Payment component.
+ */
+export interface QrCodePaymentProps {
+    /**
+     * List of blockchain networks available for payment.
+     */
+    networks: BlockchainNetwork[];
+
+    /**
+     * List of token options available for payment.
+     */
+    tokens: TokenOption[];
+
+    /**
+     * Callback function triggered when a payment is made.
+     * 
+     * @param networkId - The ID of the selected blockchain network.
+     * @param tokenId - The ID of the selected token.
+     */
+    onPayment: (networkId: string, tokenId: string) => void;
+
+    /**
+     * Optional text to display on the payment button.
+     */
+    buttonText?: string;
+
+    /**
+     * Optional CSS class name for styling the payment button.
+     */
+    buttonClassName?: string;
+
+    /**
+     * Optional wallet address to display or use for the payment.
+     */
+    walletAddress?: string;
+}
+
+/**
+ * Props for the WalletConnectPayment component.
+ */
+export interface WalletConnectPaymentProps {
+    /**
+     * List of blockchain networks available for payment.
+     */
+    networks: BlockchainNetwork[];
+
+    /**
+     * List of token options available for selection.
+     */
+    tokens: TokenOption[];
+
+    /**
+     * Callback function triggered when a payment is initiated.
+     * 
+     * @param networkId - The ID of the selected blockchain network.
+     * @param tokenId - The ID of the selected token.
+     */
+    onPayment: (networkId: string, tokenId: string) => void;
+
+    /**
+     * Optional text to display on the payment button.
+     */
+    buttonText?: string;
+
+    /**
+     * Optional CSS class name to apply to the payment button.
+     */
+    buttonClassName?: string;
+}
