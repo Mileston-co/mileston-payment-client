@@ -250,7 +250,19 @@ export interface WalletConnectPaymentProps {
     buttonClassName?: string;
 }
 
-export interface SavePaymentResponse {
+export interface SavePaymentResponse extends Response {
+    message: string;
+}
+
+interface Response {
     statusCode: number;
+}
+
+export interface GetPaymentWallet extends Response {
+    qrCode: string;
+    publicKey: string;
+}
+
+export interface VerifyPaymentWithWallet extends Response {
     message: string;
 }

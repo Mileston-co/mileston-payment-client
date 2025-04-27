@@ -53,16 +53,16 @@ export type PaymentType = 'invoice' | 'payment-link' | 'recurring';
 export type PaymentResponse = FetchInvoiceResponse | FetchPaymentLinkResponse | FetchRecurringPaymentResponse;
 
 export interface FetchPaymentOptions {
-  apiKey: string;
-  businessId: string;
-  paymentId: string;
-  paymentType: PaymentType;
+    apiKey: string;
+    businessId: string;
+    paymentId: string;
+    paymentType: PaymentType;
 }
 
 export interface FetchPaymentResult {
-  data?: PaymentResponse;
-  error?: string;
-  loading: boolean;
+    data?: PaymentResponse;
+    error?: string;
+    loading: boolean;
 }
 
 export interface FetchInvoiceResponse {
@@ -144,7 +144,7 @@ export interface SavePaymentInput {
     feeSignature?: string;
     chain: "avax" | "base" | "pol" | "eth" | "arb" | "sui";
     env: "test" | "prod";
-  }
+}
 
 export interface SavePaymentOptions {
     apiKey: string;
@@ -152,4 +152,22 @@ export interface SavePaymentOptions {
     type: PaymentType;   // <- User now passes type like 'invoice'
     body: SavePaymentInput;
     nativeTokens?: string;
-  }
+}
+
+
+export type WalletType = 'sui' | 'evm';
+
+export type PaymentVerifyPattern = 'invoice.save' | 'paymentlink.save' | 'recurring.save';
+
+export interface PaymentDto {
+    paymentLinkId: string;
+    publicKey: string;
+    amount: string;
+    payable: string;
+    recipientWalletAddress: string;
+    chain: 'sui' | 'eth' | 'avax' | 'pol' | 'base' | 'arb';
+    env: 'test' | 'prod';
+    userUUID: string;
+    customerInformation?: "test" | "prod";
+    token: "SUI" | "USDC" | "USDT" | "AVAX" | "ETH" | "POL";
+}
