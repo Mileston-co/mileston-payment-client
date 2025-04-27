@@ -3,6 +3,7 @@ import {
     PaymentDto, 
     PaymentVerifyPattern 
 } from "@/types";
+import { BASE_URL } from "./utils";
 
 export async function getPaymentWallet(params: {
   apiKey: string;
@@ -11,7 +12,7 @@ export async function getPaymentWallet(params: {
 }) {
   const { apiKey, businessId, walletType } = params;
 
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/payment-wallet/${walletType}`, {
+  const res = await fetch(`${BASE_URL}/payment-wallet/${walletType}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -47,7 +48,7 @@ export async function verifyPaymentWithWallet(params: {
 
   const pattern = patternMap[type];
 
-  const url = new URL(`${process.env.NEXT_PUBLIC_API_URL}/verify-payment/${pattern}`);
+  const url = new URL(`${process.env.BASE_URL}/verify-payment/${pattern}`);
   if (nativeTokens) {
     url.searchParams.append('nativeTokens', nativeTokens);
   }

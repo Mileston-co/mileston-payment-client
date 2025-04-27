@@ -110,3 +110,5 @@ export const patternMap: Record<PaymentType, string> = {
     'payment-link': 'paymentlink.save',
     recurring: 'recurring.save',
 };
+
+export const BASE_URL = 'https://www.checkout-service.mileston.co/checkout'

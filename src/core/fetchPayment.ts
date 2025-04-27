@@ -3,8 +3,7 @@ import {
     FetchPaymentResult,
     PaymentType
 } from "../types";
-
-const BASE_URL = 'https://checkout-service.mileston.co/checkout/data';
+import { BASE_URL } from "./utils";
 
 const paymentTypeToPattern: Record<PaymentType, string> = {
     'invoice': 'invoice.get',
@@ -22,7 +21,7 @@ export async function fetchPayment(
         return { loading: false, error: 'Invalid payment type provided.' };
     }
 
-    const url = `${BASE_URL}/${pattern}/${paymentId}`;
+    const url = `${BASE_URL}/data/${pattern}/${paymentId}`;
 
     try {
         const res = await fetch(url, {

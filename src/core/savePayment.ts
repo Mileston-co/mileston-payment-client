@@ -1,5 +1,5 @@
 import { SavePaymentOptions } from "@/types";
-import { patternMap } from "./utils";
+import { BASE_URL, patternMap } from "./utils";
 
 export async function savePayment({
   apiKey,
@@ -18,7 +18,7 @@ export async function savePayment({
     throw new Error(`Invalid payment type '${type}' passed! You must be sleep-typing bro 💤`);
   }
 
-  const url = new URL(`https://www.checkout-service.mileston.co/checkout/save-payment${pattern}`)
+  const url = new URL(`${BASE_URL}/save-payment${pattern}`)
 
   if (nativeTokens) {
     url.searchParams.append("nativeTokens", nativeTokens);
