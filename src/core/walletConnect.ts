@@ -15,6 +15,39 @@ import {
     getUsdtEVMContractAddress
 } from './utils';
 
+/**
+ * Handles payment transactions using EVM-compatible wallets via WalletConnect.
+ * Supports both native tokens (e.g., AVAX, POL, ETH) and ERC-20 tokens (e.g., USDC, USDT).
+ *
+ * @param {PayWithWalletConnect} params - The payment parameters.
+ * @param {string} params.env - The environment (e.g., "test", "prod").
+ * @param {string} params.evm - The EVM chain identifier (e.g., "eth", "pol").
+ * @param {string} params.recipientAddress - The recipient's wallet address.
+ * @param {string} params.amount - The amount to send (in token units, not Wei).
+ * @param {string} params.token - The token type (e.g., "AVAX", "ETH", "USDC", "USDT").
+ *
+ * @returns {Promise<{ txHash: string; feeHash: string; payerAddress: string }>} - A promise that resolves with the transaction hash and payer's address.
+ *
+ * @throws {Error} - Throws an error if the transaction fails or an unsupported token type is provided.
+ *
+ * @remarks
+ * - For native tokens, two transactions are sent: one to the recipient and one for the fee.
+ * - For ERC-20 tokens, two token transfer transactions are encoded and sent.
+ * - The fee is calculated as 0.04% of the total amount.
+ * - The function uses the `viem` library for interacting with the blockchain.
+ *
+ * @example
+ * ```typescript
+ * const result = await handlePayWithEVMWalletConnect({
+ *     env: "prod",
+ *     evm: "eth",
+ *     recipientAddress: "0xRecipientAddress",
+ *     amount: "100",
+ *     token: "USDC"
+ * });
+ * console.log(result.txhash, result.payerAddress);
+ * ```
+ */
 
 export async function handlePayWithEVMWalletConnect(
     {
@@ -24,7 +57,7 @@ export async function handlePayWithEVMWalletConnect(
         amount,
         token
     }: PayWithWalletConnect
-) {
+): Promise<{ txHash: string; feeHash: string; payerAddress: string; }> {
     try {
         const chain = getChain(env, evm);
         console.log("Creating clients....");
@@ -89,7 +122,8 @@ export async function handlePayWithEVMWalletConnect(
 
             console.log("Receipts received...");
             return {
-                hash: receipt1.transactionHash,
+                txHash: receipt1.transactionHash,
+                feeHash: receipt2.transactionHash,
                 payerAddress: address
             };
         } else if (token === 'USDC' || token === 'USDT') {
@@ -134,8 +168,9 @@ export async function handlePayWithEVMWalletConnect(
 
             console.log("Receipts received...");
             return {
-                hash: receipt1.transactionHash,
-                payerAddress: address
+                txHash: receipt1.transactionHash,
+                feeHash: receipt2.transactionHash,
+                payerAddress: address,
             };
         } else {
             throw new Error(`Unsupported token type: ${token}`);
