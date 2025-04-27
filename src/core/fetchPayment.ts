@@ -5,7 +5,7 @@ import {
     PaymentType
 } from "../types";
 
-const BASE_URL = 'https://checkout-service.mileston.co/data';
+const BASE_URL = 'https://checkout-service.mileston.co/checkout/data';
 
 const paymentTypeToPattern: Record<PaymentType, string> = {
     'invoice': 'invoice.get',

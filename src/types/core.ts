@@ -132,3 +132,24 @@ export interface PayWithWalletConnect {
     recipientAddress: string;
     token: 'AVAX' | 'POL' | 'ETH' | 'USDC' | 'USDT'
 }
+
+
+export interface SavePaymentInput {
+    paymentLinkId: string;
+    payer: string;
+    recipientWalletAddress: string;
+    amount: string;
+    userUUID: string;
+    transactionSignature: string;
+    feeSignature?: string;
+    chain: "avax" | "base" | "pol" | "eth" | "arb" | "sui";
+    env: "test" | "prod";
+  }
+
+export interface SavePaymentOptions {
+    apiKey: string;
+    businessId: string;
+    type: PaymentType;   // <- User now passes type like 'invoice'
+    body: SavePaymentInput;
+    nativeTokens?: string;
+  }
