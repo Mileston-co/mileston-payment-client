@@ -13,7 +13,7 @@ const paymentTypeToPattern: Record<PaymentType, string> = {
     'recurring': 'recurring.get',
 };
 
-export async function fetchPayment<T extends PaymentResponse>(
+export async function fetchPayment(
     options: FetchPaymentOptions
 ): Promise<FetchPaymentResult> {
     const { apiKey, businessId, paymentId, paymentType } = options;
