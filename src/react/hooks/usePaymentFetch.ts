@@ -15,7 +15,7 @@ export function useFetchPayment<T extends PaymentResponse>(options: FetchPayment
 
     async function load() {
       setLoading(true);
-      const result = await fetchPayment<T>(options);
+      const result = await fetchPayment(options);
 
       if (!isMounted) return;
 

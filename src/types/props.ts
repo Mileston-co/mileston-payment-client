@@ -249,3 +249,8 @@ export interface WalletConnectPaymentProps {
      */
     buttonClassName?: string;
 }
+
+export interface SavePaymentResponse {
+    statusCode: number;
+    message: string;
+}
