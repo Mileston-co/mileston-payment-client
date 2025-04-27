@@ -1,7 +1,6 @@
 import {
     FetchPaymentOptions,
     FetchPaymentResult,
-    PaymentResponse,
     PaymentType
 } from "../types";
 
