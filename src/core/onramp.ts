@@ -1,11 +1,11 @@
-import { GetOnRampDataParams, GetOnRampPaymentStatusParams } from "@/types";
+import { GetOnRampDataParams, GetOnRampPaymentStatusParams, OnRampLinkResponse, OnRampPaymentStatusResponse } from "@/types";
 import { BASE_URL } from "./utils";
 
 export async function getOnRampData(
   params: GetOnRampDataParams,
   apikey: string,
   businessid: string
-) {
+): Promise<OnRampLinkResponse> {
   const query = new URLSearchParams({
     amount: params.amount,
     recipientWalletAddress: params.recipientWalletAddress,
@@ -33,7 +33,7 @@ export async function getOnRampPaymentStatus(
   params: GetOnRampPaymentStatusParams,
   apikey: string,
   businessid: string
-) {
+): Promise<OnRampPaymentStatusResponse> {
   const { id, amount, chain, recipientWalletAddress } = params;
 
   const res = await fetch(`${BASE_URL}/onramp-payment-status/${id}`, {

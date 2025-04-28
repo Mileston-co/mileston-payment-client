@@ -276,4 +276,15 @@ export interface PaymentContextProps {
 
 export interface PaymentProviderProps extends PaymentContextProps {
     children: ReactNode;
-  }
+}
+
+export interface CardPaymentProps {
+    buttonText?: string
+    buttonClassName?: string
+    dialogTitle?: string
+    dialogDescription?: string
+    amount: string
+    chain: 'eth' | 'avax' | 'pol' | 'base' | 'arb'
+    recipientWalletAddress: string
+    onPaymentComplete: () => void
+}

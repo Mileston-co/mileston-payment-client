@@ -1,7 +1,9 @@
 import { 
     WalletType, 
     PaymentDto, 
-    PaymentVerifyPattern 
+    PaymentVerifyPattern, 
+    GetPaymentWallet,
+    VerifyPaymentWithWallet
 } from "@/types";
 import { BASE_URL } from "./utils";
 
@@ -9,7 +11,7 @@ export async function getPaymentWallet(params: {
   apikey: string;
   businessid: string;
   walletType: WalletType;
-}) {
+}): Promise<GetPaymentWallet> {
   const { apikey, businessid, walletType } = params;
 
   const res = await fetch(`${BASE_URL}/payment-wallet/${walletType}`, {
@@ -37,7 +39,7 @@ export async function verifyPaymentWithWallet(params: {
   type: 'invoice' | 'payment-link' | 'recurring';
   body: PaymentDto;
   nativeTokens?: string;
-}) {
+}): Promise<VerifyPaymentWithWallet> {
   const { apikey, businessid, type, body, nativeTokens } = params;
 
   const patternMap: Record<string, PaymentVerifyPattern> = {
