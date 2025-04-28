@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import { PaymentDto, PaymentType } from "./core";
 
 /**
  * Props for the PayButton component
@@ -213,10 +214,11 @@ export interface QrCodePaymentProps {
      */
     buttonClassName?: string;
 
-    /**
-     * Optional wallet address to display or use for the payment.
-     */
-    walletAddress?: string;
+    paymentType: PaymentType;
+
+    verificationData: Partial<PaymentDto>;
+
+    onPaymentComplete: () => void;
 }
 
 /**

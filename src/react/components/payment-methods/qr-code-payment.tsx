@@ -1,27 +1,32 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
 import { Button } from "../ui/button"
 import { Label } from "../ui/label"
 import { QrCode, Copy, Check } from "lucide-react"
 import { cn } from "../lib/utils"
-import { QrCodePaymentProps } from "@/types"
+import { PaymentDto, QrCodePaymentProps, Token, WalletType } from "@/types"
+import { useGetPaymentWallet, useVerifyPaymentWithWallet } from "@/react/hooks"
 
 export function QrCodePayment({
   networks = [],
   tokens = [],
-  onPayment,
   buttonText = "Generate Payment QR",
   buttonClassName,
-  walletAddress = "0x742d35Cc6634C0532925a3b844Bc454e4438f44e", // Example address, should be provided by the parent
+  paymentType,
+  verificationData,
+  onPaymentComplete
 }: QrCodePaymentProps) {
   const [selectedNetwork, setSelectedNetwork] = useState<string>(networks[0]?.id || "")
   const [selectedToken, setSelectedToken] = useState<string>("")
   const [showQrCode, setShowQrCode] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [paymentVerified, setPaymentVerified] = useState(false)
 
-  // Filter tokens based on selected network
+  const { fetchWallet, loading: fetchingWallet, wallet } = useGetPaymentWallet()
+  const { verify, loading: verifyingPayment } = useVerifyPaymentWithWallet()
+
   const availableTokens = tokens.filter((token) => token.networkId === selectedNetwork)
 
   const handleNetworkChange = (value: string) => {
@@ -30,27 +35,65 @@ export function QrCodePayment({
     setShowQrCode(false)
   }
 
-  const handleGenerateQr = () => {
-    if (onPayment && selectedNetwork && selectedToken) {
-      onPayment(selectedNetwork, selectedToken)
-      setShowQrCode(true)
+  const handleGenerateQr = async () => {
+    if (selectedNetwork && selectedToken) {
+      try {
+        await fetchWallet(selectedNetwork === 'sui' ? 'sui' : 'evm')
+        setShowQrCode(true)
+      } catch (error) {
+        console.error("Failed to fetch wallet", error)
+      }
     }
   }
 
   const copyToClipboard = () => {
-    navigator.clipboard.writeText(walletAddress)
+    if (!wallet?.publicKey) return
+    navigator.clipboard.writeText(wallet.publicKey)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
 
-  // Find the selected network and token for display
   const selectedNetworkObj = networks.find((n) => n.id === selectedNetwork)
   const selectedTokenObj = tokens.find((t) => t.id === selectedToken)
+
+  // -- POLLING for verification --
+  useEffect(() => {
+    let interval: NodeJS.Timeout
+
+    if (showQrCode && wallet?.publicKey && !paymentVerified) {
+      interval = setInterval(async () => {
+        try {
+          const result = await verify(
+            paymentType,
+            {
+              ...verificationData as PaymentDto,
+              token: selectedToken as Token
+            },
+            selectedToken === 'ETH' || selectedToken === 'POL' || selectedToken === 'AVAX' ? selectedToken : undefined
+          )
+
+          if (result?.statusCode === 200) {
+            clearInterval(interval)
+            setPaymentVerified(true)
+            console.log("🎉 Payment verified!")
+            onPaymentComplete()
+          }
+        } catch (err) {
+          console.error("Verification polling error", err)
+        }
+      }, 10000)
+    }
+
+    return () => {
+      if (interval) clearInterval(interval)
+    }
+  }, [showQrCode, wallet, verificationData, selectedTokenObj, selectedNetworkObj, paymentVerified, verify])
 
   return (
     <div className="space-y-4">
       {!showQrCode ? (
         <>
+          {/* select network and token */}
           <div className="space-y-2">
             <Label htmlFor="qr-network">Select Blockchain</Label>
             <Select value={selectedNetwork} onValueChange={handleNetworkChange}>
@@ -62,12 +105,7 @@ export function QrCodePayment({
                   <SelectItem key={network.id} value={network.id}>
                     <div className="flex items-center gap-2">
                       {network.icon && (
-                        <img
-                          src={network.icon || "/placeholder.svg?height=16&width=16"}
-                          alt={network.name}
-                          width={16}
-                          height={16}
-                        />
+                        <img src={network.icon} alt={network.name} width={16} height={16} />
                       )}
                       {network.name}
                     </div>
@@ -88,12 +126,7 @@ export function QrCodePayment({
                   <SelectItem key={token.id} value={token.id}>
                     <div className="flex items-center gap-2">
                       {token.icon && (
-                        <img
-                          src={token.icon || "/placeholder.svg?height=16&width=16"}
-                          alt={token.symbol}
-                          width={16}
-                          height={16}
-                        />
+                        <img src={token.icon} alt={token.symbol} width={16} height={16} />
                       )}
                       {token.symbol} - {token.name}
                     </div>
@@ -105,45 +138,39 @@ export function QrCodePayment({
 
           <Button
             className={cn("w-full", buttonClassName)}
-            disabled={!selectedNetwork || !selectedToken}
+            disabled={!selectedNetwork || !selectedToken || fetchingWallet}
             onClick={handleGenerateQr}
           >
             <QrCode className="mr-2 h-4 w-4" />
-            {buttonText}
+            {fetchingWallet ? "Generating..." : buttonText}
           </Button>
         </>
       ) : (
         <div className="space-y-4">
+          {/* show QR code */}
           <div className="text-center space-y-2">
             <p className="text-sm font-medium">
               Send {selectedTokenObj?.symbol} on {selectedNetworkObj?.name} network
             </p>
             <div className="flex items-center justify-center space-x-2">
               {selectedNetworkObj?.icon && (
-                <img
-                  src={selectedNetworkObj.icon || "/placeholder.svg"}
-                  alt={selectedNetworkObj.name}
-                  width={20}
-                  height={20}
-                />
+                <img src={selectedNetworkObj.icon} alt={selectedNetworkObj.name} width={20} height={20} />
               )}
               {selectedTokenObj?.icon && (
-                <img
-                  src={selectedTokenObj.icon || "/placeholder.svg"}
-                  alt={selectedTokenObj.symbol}
-                  width={20}
-                  height={20}
-                />
+                <img src={selectedTokenObj.icon} alt={selectedTokenObj.symbol} width={20} height={20} />
               )}
             </div>
           </div>
 
           <div className="flex flex-col items-center justify-center py-4">
             <div className="bg-white p-2 rounded-lg mb-2">
-              {/* Placeholder for actual QR code implementation */}
-              <div className="h-48 w-48 bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                <QrCode size={120} className="text-primary" />
-              </div>
+              {wallet?.qrCode ? (
+                <img src={wallet.qrCode} alt="QR Code" className="h-48 w-48 object-contain" />
+              ) : (
+                <div className="h-48 w-48 bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                  <QrCode size={120} className="text-primary" />
+                </div>
+              )}
             </div>
 
             <div className="w-full space-y-2">
@@ -152,7 +179,9 @@ export function QrCodePayment({
               </p>
 
               <div className="flex items-center justify-between p-2 bg-muted rounded-md">
-                <code className="text-xs font-mono truncate max-w-[200px]">{walletAddress}</code>
+                <code className="text-xs font-mono truncate max-w-[200px]">
+                  {wallet?.publicKey || "No address available"}
+                </code>
                 <Button variant="ghost" size="sm" onClick={copyToClipboard} className="h-8 px-2">
                   {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                 </Button>

@@ -172,7 +172,7 @@ export interface PaymentDto {
     env: 'test' | 'prod';
     userUUID: string;
     customerInformation?: "test" | "prod";
-    token: "SUI" | "USDC" | "USDT" | "AVAX" | "ETH" | "POL";
+    token: Token;
 }
 
 export type GetOnRampDataParams = {
@@ -201,4 +201,7 @@ export interface OnRampPaymentStatusResponse {
       };
     };
   }
+
+
+  export type Token = "SUI" | "USDC" | "USDT" | "AVAX" | "ETH" | "POL"
   
