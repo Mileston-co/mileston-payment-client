@@ -1,18 +1,16 @@
 import { savePayment } from "@/core/savePayment";
 import { SavePaymentInput, SavePaymentResponse } from "@/types";
 import { useState } from "react";
+import { usePaymentContext } from "../components/PaymentContext";
 
 type PaymentType = 'invoice' | 'payment-link' | 'recurring';
 
-interface UseSavePaymentOptions {
-  apiKey: string;
-  businessId: string;
-}
-
-export function useSavePayment({ apiKey, businessId }: UseSavePaymentOptions) {
+export function useSavePayment() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<SavePaymentResponse | null>(null);
+
+  const { apikey, businessid } = usePaymentContext();
 
   async function triggerSavePayment(
     type: PaymentType,
@@ -24,8 +22,8 @@ export function useSavePayment({ apiKey, businessId }: UseSavePaymentOptions) {
 
     try {
       const response = await savePayment({
-        apiKey,
-        businessId,
+        apikey,
+        businessid,
         type,
         body,
         nativeTokens,

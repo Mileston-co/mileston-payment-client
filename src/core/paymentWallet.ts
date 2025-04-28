@@ -6,18 +6,18 @@ import {
 import { BASE_URL } from "./utils";
 
 export async function getPaymentWallet(params: {
-  apiKey: string;
-  businessId: string;
+  apikey: string;
+  businessid: string;
   walletType: WalletType;
 }) {
-  const { apiKey, businessId, walletType } = params;
+  const { apikey, businessid, walletType } = params;
 
   const res = await fetch(`${BASE_URL}/payment-wallet/${walletType}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
-      "apiKey": apiKey,
-      "businessId": businessId,
+      "apikey": apikey,
+      "businessid": businessid,
     },
   });
 
@@ -32,13 +32,13 @@ export async function getPaymentWallet(params: {
 
 
 export async function verifyPaymentWithWallet(params: {
-  apiKey: string;
-  businessId: string;
+  apikey: string;
+  businessid: string;
   type: 'invoice' | 'payment-link' | 'recurring';
   body: PaymentDto;
   nativeTokens?: string;
 }) {
-  const { apiKey, businessId, type, body, nativeTokens } = params;
+  const { apikey, businessid, type, body, nativeTokens } = params;
 
   const patternMap: Record<string, PaymentVerifyPattern> = {
     invoice: 'invoice.save',
@@ -57,8 +57,8 @@ export async function verifyPaymentWithWallet(params: {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "apiKey": apiKey,
-      "businessId": businessId,
+      "apikey": apikey,
+      "businessid": businessid,
     },
     body: JSON.stringify(body),
   });

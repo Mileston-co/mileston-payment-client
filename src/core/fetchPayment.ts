@@ -14,7 +14,7 @@ const paymentTypeToPattern: Record<PaymentType, string> = {
 export async function fetchPayment(
     options: FetchPaymentOptions
 ): Promise<FetchPaymentResult> {
-    const { apiKey, businessId, paymentId, paymentType } = options;
+    const { apikey, businessid, paymentId, paymentType } = options;
     const pattern = paymentTypeToPattern[paymentType];
 
     if (!pattern) {
@@ -27,8 +27,8 @@ export async function fetchPayment(
         const res = await fetch(url, {
             method: 'GET',
             headers: {
-                'apikey': apiKey,
-                'businessid': businessId,
+                'apikey': apikey,
+                'businessid': businessid,
                 'Content-Type': 'application/json',
             },
         });

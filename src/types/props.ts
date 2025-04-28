@@ -1,3 +1,5 @@
+import { ReactNode } from "react";
+
 /**
  * Props for the PayButton component
  */
@@ -266,3 +268,12 @@ export interface GetPaymentWallet extends Response {
 export interface VerifyPaymentWithWallet extends Response {
     message: string;
 }
+
+export interface PaymentContextProps {
+    apikey: string;
+    businessid: string;
+}
+
+export interface PaymentProviderProps extends PaymentContextProps {
+    children: ReactNode;
+  }

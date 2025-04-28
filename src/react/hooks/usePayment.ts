@@ -1,23 +1,30 @@
 import { getPaymentWallet, verifyPaymentWithWallet } from "@/core/paymentWallet";
-import { 
-    WalletType, 
-    PaymentDto, 
-    VerifyPaymentWithWallet, 
-    GetPaymentWallet 
+import {
+  WalletType,
+  PaymentDto,
+  VerifyPaymentWithWallet,
+  GetPaymentWallet
 } from "@/types";
 import { useState } from "react";
+import { usePaymentContext } from "../components/PaymentContext";
 
-export function useGetPaymentWallet(apiKey: string, businessId: string) {
+export function useGetPaymentWallet() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [wallet, setWallet] = useState<GetPaymentWallet | null>(null);
+
+  const { apikey, businessid } = usePaymentContext();
 
   async function fetchWallet(walletType: WalletType) {
     setLoading(true);
     setError(null);
 
     try {
-      const res = await getPaymentWallet({ apiKey, businessId, walletType });
+      const res = await getPaymentWallet({
+        apikey,
+        businessid,
+        walletType
+      });
       setWallet(res);
       return res;
     } catch (e: any) {
@@ -31,17 +38,19 @@ export function useGetPaymentWallet(apiKey: string, businessId: string) {
   return { fetchWallet, loading, error, wallet };
 }
 
-export function useVerifyPaymentWithWallet(apiKey: string, businessId: string) {
+export function useVerifyPaymentWithWallet() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<VerifyPaymentWithWallet | null>(null);
+
+  const { apikey, businessid } = usePaymentContext();
 
   async function verify(type: 'invoice' | 'payment-link' | 'recurring', body: PaymentDto, nativeTokens?: string) {
     setLoading(true);
     setError(null);
 
     try {
-      const res = await verifyPaymentWithWallet({ apiKey, businessId, type, body, nativeTokens });
+      const res = await verifyPaymentWithWallet({ apikey, businessid, type, body, nativeTokens });
       setData(res);
       return res;
     } catch (e: any) {

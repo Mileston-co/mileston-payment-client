@@ -52,9 +52,12 @@ export type PaymentType = 'invoice' | 'payment-link' | 'recurring';
 
 export type PaymentResponse = FetchInvoiceResponse | FetchPaymentLinkResponse | FetchRecurringPaymentResponse;
 
-export interface FetchPaymentOptions {
-    apiKey: string;
-    businessId: string;
+export interface FetchPaymentOptions extends PaymentOptions {
+    apikey: string;
+    businessid: string;
+}
+
+export interface PaymentOptions {
     paymentId: string;
     paymentType: PaymentType;
 }
@@ -147,8 +150,8 @@ export interface SavePaymentInput {
 }
 
 export interface SavePaymentOptions {
-    apiKey: string;
-    businessId: string;
+    apikey: string;
+    businessid: string;
     type: PaymentType;   // <- User now passes type like 'invoice'
     body: SavePaymentInput;
     nativeTokens?: string;

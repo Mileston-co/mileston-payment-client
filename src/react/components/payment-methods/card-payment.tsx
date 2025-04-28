@@ -6,7 +6,6 @@ import { CreditCard } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog"
 
 interface CardPaymentProps {
-  cardPaymentUrl?: string
   buttonText?: string
   buttonClassName?: string
   dialogTitle?: string
@@ -14,7 +13,6 @@ interface CardPaymentProps {
 }
 
 export function CardPayment({
-  cardPaymentUrl,
   buttonText = "Pay with Card",
   buttonClassName,
   dialogTitle = "Card Payment",

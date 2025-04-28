@@ -2,13 +2,13 @@ import { SavePaymentOptions } from "@/types";
 import { BASE_URL, patternMap } from "./utils";
 
 export async function savePayment({
-  apiKey,
-  businessId,
+  apikey,
+  businessid,
   type,
   body,
   nativeTokens,
 }: SavePaymentOptions) {
-  if (!apiKey || !businessId) {
+  if (!apikey || !businessid) {
     throw new Error("You forgot the API key or Business ID. You trying to sabotage yourself, bro?");
   }
 
@@ -28,8 +28,8 @@ export async function savePayment({
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "apikey": apiKey,
-      "businessid": businessId,
+      "apikey": apikey,
+      "businessid": businessid,
     },
     body: JSON.stringify(body),
   });
