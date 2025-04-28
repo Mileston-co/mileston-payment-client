@@ -152,7 +152,7 @@ export interface SavePaymentInput {
 export interface SavePaymentOptions {
     apikey: string;
     businessid: string;
-    type: PaymentType;   // <- User now passes type like 'invoice'
+    type: PaymentType;
     body: SavePaymentInput;
     nativeTokens?: string;
 }
@@ -174,3 +174,31 @@ export interface PaymentDto {
     customerInformation?: "test" | "prod";
     token: "SUI" | "USDC" | "USDT" | "AVAX" | "ETH" | "POL";
 }
+
+export type GetOnRampDataParams = {
+    amount: string;
+    recipientWalletAddress: string;
+    chain: "avax" | "base" | "pol" | "eth" | "arb";
+};
+
+export type GetOnRampPaymentStatusParams = GetOnRampDataParams & {
+    id: string;
+};
+
+export interface OnRampLinkResponse {
+    data: {
+        id: string;
+        link: string;
+    };
+}
+
+export interface OnRampPaymentStatusResponse {
+    statusCode: number;
+    message: string;
+    data: {
+      data: {
+        status: "COMPLETED";
+      };
+    };
+  }
+  
