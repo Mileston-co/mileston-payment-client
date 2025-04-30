@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react';
 import { 
-    FetchPaymentOptions, 
-    PaymentOptions, 
+    OptionsForPayment, 
     PaymentResponse 
 } from '../../types';
 import { fetchPayment } from '../../core';
 import { usePaymentContext } from '../components/PaymentContext';
 
-export function useFetchPayment(options: PaymentOptions) {
+export function useFetchPayment(options: OptionsForPayment) {
   const [data, setData] = useState<PaymentResponse | undefined>(undefined);
   const [error, setError] = useState<string | undefined>(undefined);
   const [loading, setLoading] = useState<boolean>(true);

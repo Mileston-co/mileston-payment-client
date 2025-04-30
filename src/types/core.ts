@@ -52,12 +52,12 @@ export type PaymentType = 'invoice' | 'payment-link' | 'recurring';
 
 export type PaymentResponse = FetchInvoiceResponse | FetchPaymentLinkResponse | FetchRecurringPaymentResponse;
 
-export interface FetchPaymentOptions extends PaymentOptions {
+export interface FetchPaymentOptions extends OptionsForPayment {
     apikey: string;
     businessid: string;
 }
 
-export interface PaymentOptions {
+export interface OptionsForPayment {
     paymentId: string;
     paymentType: PaymentType;
 }
@@ -171,7 +171,7 @@ export interface PaymentDto {
     chain: 'sui' | 'eth' | 'avax' | 'pol' | 'base' | 'arb';
     env: 'test' | 'prod';
     userUUID: string;
-    customerInformation?: "test" | "prod";
+    customerInformation?: string;
     token: Token;
 }
 
@@ -198,10 +198,11 @@ export interface OnRampPaymentStatusResponse {
     data: {
       data: {
         status: "COMPLETED";
+        transactionHash: string;
       };
     };
   }
 
 
-  export type Token = "SUI" | "USDC" | "USDT" | "AVAX" | "ETH" | "POL"
+  export type Token = "USDC" | "USDT" | "AVAX" | "ETH" | "POL"
   

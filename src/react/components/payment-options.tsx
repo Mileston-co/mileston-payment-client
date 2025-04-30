@@ -11,18 +11,25 @@ import { PaymentOptionsProps } from "@/types"
 export function PaymentOptions({
   networks = [],
   tokens = [],
-  cardPaymentUrl,
-  onWalletConnectPayment,
-  onQrCodePayment,
+  onWalletConnectPaymentComplete,
+  onWalletConnectPaymentError,
+  onQrCodePaymentComplete,
+  onQrCodePaymentError,
+  onCardPaymentComplete,
+  onCardPaymentError,
   walletConnectButtonText = "Connect Wallet & Pay",
   qrCodeButtonText = "Generate Payment QR",
   cardButtonText = "Pay with Card",
   buttonClassName,
-  walletAddress,
   dialogTitle,
   dialogDescription,
   defaultTab = "wallet",
   onTabChange,
+  amount,
+  env,
+  recipientWalletAddress,
+  paymentType,
+  paymentLinkId
 }: PaymentOptionsProps) {
   const [selectedTab, setSelectedTab] = useState<string>(defaultTab)
 
@@ -55,9 +62,15 @@ export function PaymentOptions({
         <WalletConnectPayment
           networks={networks}
           tokens={tokens}
-          onPayment={(networkId, tokenId) => onWalletConnectPayment?.(networkId, tokenId)}
+          onPaymentComplete={(networkId: string, tokenId: string) => onWalletConnectPaymentComplete?.(networkId, tokenId)}
+          onPaymentError={(error) => onWalletConnectPaymentError(error)}
+          recipientWalletAddress={recipientWalletAddress}
+          amount={amount}
+          paymentLinkId={paymentLinkId}
+          env={env}
           buttonText={walletConnectButtonText}
           buttonClassName={buttonClassName}
+          paymentType={paymentType}
         />
       </TabsContent>
 
@@ -66,21 +79,33 @@ export function PaymentOptions({
         <QrCodePayment
           networks={networks}
           tokens={tokens}
-          onPayment={(networkId, tokenId) => onQrCodePayment?.(networkId, tokenId)}
+          onPaymentComplete={(networkId: string, tokenId: string) => onQrCodePaymentComplete?.(networkId, tokenId)}
           buttonText={qrCodeButtonText}
           buttonClassName={buttonClassName}
-          walletAddress={walletAddress}
+          paymentType={paymentType}
+          onPaymentError={(error) => onQrCodePaymentError(error)}
+          recipientWalletAddress={recipientWalletAddress}
+          amount={amount}
+          env={env}
+          paymentLinkId={paymentLinkId}
         />
       </TabsContent>
 
       {/* Card Payment Tab */}
       <TabsContent value="card">
         <CardPayment
-          cardPaymentUrl={cardPaymentUrl}
           buttonText={cardButtonText}
           buttonClassName={buttonClassName}
           dialogTitle={dialogTitle}
           dialogDescription={dialogDescription}
+          amount={amount}
+          recipientWalletAddress={recipientWalletAddress}
+          onPaymentComplete={onCardPaymentComplete}
+          onPaymentError={(error) => onCardPaymentError(error)}
+          networks={networks}
+          paymentLinkId={paymentLinkId}
+          env={env} 
+          paymentType={paymentType}          
         />
       </TabsContent>
     </Tabs>

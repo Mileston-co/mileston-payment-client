@@ -1,35 +1,108 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
-import { Button } from "../ui/button"
-import { Label } from "../ui/label"
-import { Wallet } from "lucide-react"
-import { WalletConnectPaymentProps } from "@/types"
+import { useState, useEffect } from "react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { Button } from "../ui/button";
+import { Label } from "../ui/label";
+import { Wallet } from "lucide-react";
+import { evmType, Token, WalletConnectPaymentProps } from "@/types";
+import { ConnectButton, useCurrentAccount } from "@mysten/dapp-kit";
+import { handlePayWithEVMWalletConnect } from "@/core";
+import { useSavePayment, useSuiPayment } from "@/react/hooks";
+import { usePaymentContext } from "../PaymentContext";
 
 export function WalletConnectPayment({
   networks = [],
   tokens = [],
-  onPayment,
+  onPaymentComplete,
+  onPaymentError,
   buttonText = "Connect Wallet & Pay",
   buttonClassName,
+  recipientWalletAddress,
+  amount,
+  paymentLinkId,
+  env = "test",
+  paymentType
 }: WalletConnectPaymentProps) {
-  const [selectedNetwork, setSelectedNetwork] = useState<string>(networks[0]?.id || "")
-  const [selectedToken, setSelectedToken] = useState<string>("")
+  const [selectedNetwork, setSelectedNetwork] = useState<string>(networks[0]?.id || "");
+  const [selectedToken, setSelectedToken] = useState<string>("");
+  const [isWalletConnected, setIsWalletConnected] = useState<boolean>(false);
+  const currentAccount = useCurrentAccount();
+  const { handleSuiPayment } = useSuiPayment(env);
+  const { triggerSavePayment } = useSavePayment();
+  const { businessid } = usePaymentContext()
 
   // Filter tokens based on selected network
-  const availableTokens = tokens.filter((token) => token.networkId === selectedNetwork)
+  const availableTokens = tokens.filter((token) => token.networkId === selectedNetwork);
 
   const handleNetworkChange = (value: string) => {
-    setSelectedNetwork(value)
-    setSelectedToken("")
-  }
+    setSelectedNetwork(value);
+    setSelectedToken("");
+  };
 
-  const handlePayWithWallet = () => {
-    if (onPayment && selectedNetwork && selectedToken) {
-      onPayment(selectedNetwork, selectedToken)
+  const handlePayWithWallet = async () => {
+    try {
+      if (selectedNetwork === "sui") {
+        const { payerAddress, transactionHash } = await handleSuiPayment({
+          recipientWalletAddress: selectedNetwork === 'sui' ? recipientWalletAddress.sui as string : recipientWalletAddress.evm as string,
+          amount,
+        });
+
+        await triggerSavePayment(paymentType, {
+          paymentLinkId,
+          payer: payerAddress,
+          recipientWalletAddress: selectedNetwork === 'sui' ? recipientWalletAddress.sui as string : recipientWalletAddress.evm as string,
+          amount: amount.toString(),
+          userUUID: businessid,
+          transactionSignature: transactionHash,
+          chain: "sui",
+          env,
+        },
+        selectedToken === 'ETH' || selectedToken === 'POL' || selectedToken === 'AVAX' ? selectedToken : undefined
+      );
+
+        if (onPaymentComplete) {
+          onPaymentComplete(selectedNetwork, selectedToken);
+        }
+      } else {
+        const { txHash, feeHash, payerAddress } = await handlePayWithEVMWalletConnect({
+          env,
+          evm: selectedNetwork as evmType,
+          recipientAddress: selectedNetwork === 'sui' ? recipientWalletAddress.sui as string : recipientWalletAddress.evm as string,
+          amount,
+          token: selectedToken as Token,
+        });
+
+        await triggerSavePayment(paymentType, {
+          paymentLinkId,
+          payer: payerAddress,
+          recipientWalletAddress: selectedNetwork === 'sui' ? recipientWalletAddress.sui as string : recipientWalletAddress.evm as string,
+          amount: amount.toString(),
+          userUUID: businessid,
+          transactionSignature: txHash,
+          feeSignature: feeHash,
+          chain: selectedNetwork as any,
+          env,
+        },
+        selectedToken === 'ETH' || selectedToken === 'POL' || selectedToken === 'AVAX' ? selectedToken : undefined
+      );
+
+        if (onPaymentComplete) {
+          onPaymentComplete(selectedNetwork, selectedToken);
+        }
+      }
+    } catch (error: any) {
+      console.error("Payment failed:", error);
+      onPaymentError(error)
     }
-  }
+  };
+
+  useEffect(() => {
+    if (selectedNetwork === "sui" && currentAccount?.address) {
+      setIsWalletConnected(true);
+      handlePayWithWallet();
+    }
+  }, [currentAccount]);
 
   return (
     <div className="space-y-4">
@@ -85,14 +158,28 @@ export function WalletConnectPayment({
         </Select>
       </div>
 
-      <Button
-        className={`w-full ${buttonClassName || ""}`}
-        disabled={!selectedNetwork || !selectedToken}
-        onClick={handlePayWithWallet}
-      >
-        <Wallet className="mr-2 h-4 w-4" />
-        {buttonText}
-      </Button>
+      {selectedNetwork === "sui" ? (
+        <ConnectButton
+          style={{
+            marginBottom: "0rem",
+            backgroundColor: "transparent",
+            color: "inherit",
+            border: "none",
+            padding: "0px",
+          }}
+          disabled={isWalletConnected}
+          connectText={buttonText}
+        />
+      ) : (
+        <Button
+          className={`w-full ${buttonClassName || ""}`}
+          disabled={!selectedNetwork || !selectedToken}
+          onClick={handlePayWithWallet}
+        >
+          <Wallet className="mr-2 h-4 w-4" />
+          {buttonText}
+        </Button>
+      )}
     </div>
-  )
+  );
 }

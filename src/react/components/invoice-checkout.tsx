@@ -1,31 +1,42 @@
 "use client"
 
 import { useState } from "react"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "./ui/card"
 import { PaymentOptions } from "./payment-options"
 import { InvoiceCheckoutProps } from "@/types"
 
 export function InvoiceCheckout({
   businessName,
   businessLogo,
-  invoiceId,
-  amount,
   currency = "USD",
   description,
   networks = [],
   tokens = [],
-  cardPaymentUrl,
-  onWalletConnectPayment,
-  onQrCodePayment,
   walletConnectButtonText = "Connect Wallet & Pay",
   qrCodeButtonText = "Generate Payment QR",
   cardButtonText = "Pay with Card",
   buttonClassName,
-  walletAddress,
   dialogTitle,
   dialogDescription,
   className,
   footerText,
+  paymentLinkId,
+  env = "test",
+  onWalletConnectPaymentComplete,
+  onWalletConnectPaymentError,
+  onQrCodePaymentComplete,
+  onQrCodePaymentError,
+  onCardPaymentComplete,
+  onCardPaymentError,
+  amount,
+  recipientWalletAddress
 }: InvoiceCheckoutProps) {
   const [selectedTab, setSelectedTab] = useState("wallet")
 
@@ -46,38 +57,49 @@ export function InvoiceCheckout({
           )}
           <div>
             <CardTitle>{businessName}</CardTitle>
-            <CardDescription>Invoice #{invoiceId}</CardDescription>
+            <CardDescription>Invoice #{paymentLinkId}</CardDescription>
           </div>
         </div>
       </CardHeader>
+
       <CardContent className="space-y-6">
         <div className="flex flex-col space-y-1.5">
           <div className="text-2xl font-bold">
-            {currency} {amount.toFixed(2)}
+            {currency} {parseFloat(amount).toFixed(2)}
           </div>
-          {description && <p className="text-sm text-muted-foreground">{description}</p>}
+          {description && (
+            <p className="text-sm text-muted-foreground">{description}</p>
+          )}
         </div>
 
         <PaymentOptions
           networks={networks}
           tokens={tokens}
-          cardPaymentUrl={cardPaymentUrl}
-          onWalletConnectPayment={onWalletConnectPayment}
-          onQrCodePayment={onQrCodePayment}
           walletConnectButtonText={walletConnectButtonText}
           qrCodeButtonText={qrCodeButtonText}
           cardButtonText={cardButtonText}
           buttonClassName={buttonClassName}
-          walletAddress={walletAddress}
           dialogTitle={dialogTitle}
           dialogDescription={dialogDescription}
           defaultTab="wallet"
           onTabChange={(tab) => setSelectedTab(tab)}
+          onWalletConnectPaymentComplete={onWalletConnectPaymentComplete}
+          onWalletConnectPaymentError={onWalletConnectPaymentError}
+          onQrCodePaymentComplete={onQrCodePaymentComplete}
+          onQrCodePaymentError={onQrCodePaymentError}
+          onCardPaymentComplete={onCardPaymentComplete}
+          onCardPaymentError={onCardPaymentError}
+          amount={amount}
+          env={env}
+          recipientWalletAddress={recipientWalletAddress}
+          paymentType={"invoice"}
+          paymentLinkId={paymentLinkId}
         />
       </CardContent>
+
       <CardFooter className="flex justify-between text-sm text-muted-foreground">
         <span>{footerText || "Secure payment"}</span>
-        <span>Invoice #{invoiceId}</span>
+        <span>Invoice #{paymentLinkId}</span>
       </CardFooter>
     </Card>
   )

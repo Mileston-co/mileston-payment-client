@@ -13,19 +13,25 @@ export function SubscriptionCheckout({
   plan,
   networks = [],
   tokens = [],
-  cardPaymentUrl,
-  onWalletConnectPayment,
-  onQrCodePayment,
   walletConnectButtonText = "Subscribe with Wallet",
   qrCodeButtonText = "Generate Subscription QR",
   cardButtonText = "Subscribe with Card",
   buttonClassName,
-  walletAddress,
   dialogTitle = "Card Subscription",
   dialogDescription = "Set up your recurring payment using the secure form",
   className,
   footerText,
   cancelText,
+  paymentLinkId,
+  env = "test",
+  onWalletConnectPaymentComplete,
+  onWalletConnectPaymentError,
+  onQrCodePaymentComplete,
+  onQrCodePaymentError,
+  onCardPaymentComplete,
+  onCardPaymentError,
+  amount,
+  recipientWalletAddress
 }: SubscriptionCheckoutProps) {
   const [selectedTab, setSelectedTab] = useState("wallet")
 
@@ -44,7 +50,7 @@ export function SubscriptionCheckout({
         <div className="flex items-center space-x-4">
           {businessLogo && (
             <div className="h-12 w-12 overflow-hidden rounded-full">
-              <ImageBitmap
+              <img
                 src={businessLogo || "/placeholder.svg?height=48&width=48"}
                 alt={`${businessName} logo`}
                 width={48}
@@ -87,18 +93,25 @@ export function SubscriptionCheckout({
         <PaymentOptions
           networks={networks}
           tokens={tokens}
-          cardPaymentUrl={cardPaymentUrl}
-          onWalletConnectPayment={onWalletConnectPayment}
-          onQrCodePayment={onQrCodePayment}
           walletConnectButtonText={walletConnectButtonText}
           qrCodeButtonText={qrCodeButtonText}
           cardButtonText={cardButtonText}
           buttonClassName={buttonClassName}
-          walletAddress={walletAddress}
           dialogTitle={dialogTitle}
           dialogDescription={dialogDescription}
           defaultTab="wallet"
           onTabChange={(tab) => setSelectedTab(tab)}
+          onWalletConnectPaymentComplete={onWalletConnectPaymentComplete}
+          onWalletConnectPaymentError={onWalletConnectPaymentError}
+          onQrCodePaymentComplete={onQrCodePaymentComplete}
+          onQrCodePaymentError={onQrCodePaymentError}
+          onCardPaymentComplete={onCardPaymentComplete}
+          onCardPaymentError={onCardPaymentError}
+          amount={amount}
+          env={env}
+          recipientWalletAddress={recipientWalletAddress}
+          paymentType={"recurring"}
+          paymentLinkId={paymentLinkId}
         />
       </CardContent>
       <CardFooter className="flex flex-col gap-2 text-sm text-muted-foreground">

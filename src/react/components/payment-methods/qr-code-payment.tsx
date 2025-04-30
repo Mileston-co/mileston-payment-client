@@ -6,8 +6,9 @@ import { Button } from "../ui/button"
 import { Label } from "../ui/label"
 import { QrCode, Copy, Check } from "lucide-react"
 import { cn } from "../lib/utils"
-import { PaymentDto, QrCodePaymentProps, Token, WalletType } from "@/types"
+import { QrCodePaymentProps, Token} from "@/types"
 import { useGetPaymentWallet, useVerifyPaymentWithWallet } from "@/react/hooks"
+import { usePaymentContext } from "../PaymentContext"
 
 export function QrCodePayment({
   networks = [],
@@ -15,8 +16,12 @@ export function QrCodePayment({
   buttonText = "Generate Payment QR",
   buttonClassName,
   paymentType,
-  verificationData,
-  onPaymentComplete
+  onPaymentComplete,
+  onPaymentError,
+  recipientWalletAddress,
+  amount,
+  env,
+  paymentLinkId
 }: QrCodePaymentProps) {
   const [selectedNetwork, setSelectedNetwork] = useState<string>(networks[0]?.id || "")
   const [selectedToken, setSelectedToken] = useState<string>("")
@@ -26,6 +31,8 @@ export function QrCodePayment({
 
   const { fetchWallet, loading: fetchingWallet, wallet } = useGetPaymentWallet()
   const { verify, loading: verifyingPayment } = useVerifyPaymentWithWallet()
+
+  const { businessid } = usePaymentContext()
 
   const availableTokens = tokens.filter((token) => token.networkId === selectedNetwork)
 
@@ -63,23 +70,32 @@ export function QrCodePayment({
     if (showQrCode && wallet?.publicKey && !paymentVerified) {
       interval = setInterval(async () => {
         try {
-          const result = await verify(
+            const payable = (Number(amount) - (Number(amount) * 0.004)).toString()
+            const result = await verify(
             paymentType,
             {
-              ...verificationData as PaymentDto,
+              paymentLinkId,
+              publicKey: wallet.publicKey,
+              amount,
+              payable,
+              recipientWalletAddress: selectedNetwork === 'sui' ? recipientWalletAddress.sui as string : recipientWalletAddress.evm as string,
+              chain: selectedNetwork as any,
+              env,
+              userUUID: businessid,
               token: selectedToken as Token
             },
             selectedToken === 'ETH' || selectedToken === 'POL' || selectedToken === 'AVAX' ? selectedToken : undefined
-          )
+            )
 
           if (result?.statusCode === 200) {
             clearInterval(interval)
             setPaymentVerified(true)
             console.log("🎉 Payment verified!")
-            onPaymentComplete()
+            onPaymentComplete(selectedNetwork, selectedToken)
           }
-        } catch (err) {
+        } catch (err: any) {
           console.error("Verification polling error", err)
+          onPaymentError(err)
         }
       }, 10000)
     }
@@ -87,7 +103,7 @@ export function QrCodePayment({
     return () => {
       if (interval) clearInterval(interval)
     }
-  }, [showQrCode, wallet, verificationData, selectedTokenObj, selectedNetworkObj, paymentVerified, verify])
+  }, [showQrCode, wallet, selectedTokenObj, selectedNetworkObj, paymentVerified, verify])
 
   return (
     <div className="space-y-4">

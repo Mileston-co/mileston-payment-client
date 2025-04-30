@@ -50,7 +50,7 @@ export async function verifyPaymentWithWallet(params: {
 
   const pattern = patternMap[type];
 
-  const url = new URL(`${process.env.BASE_URL}/verify-payment/${pattern}`);
+  const url = new URL(`${BASE_URL}/verify-payment/${pattern}`);
   if (nativeTokens) {
     url.searchParams.append('nativeTokens', nativeTokens);
   }

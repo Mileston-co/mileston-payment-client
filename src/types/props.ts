@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { PaymentDto, PaymentType } from "./core";
+import { env, PaymentDto, PaymentType } from "./core";
 
 /**
  * Props for the PayButton component
@@ -95,12 +95,19 @@ export interface PaymentMethodProps {
     networks: BlockchainNetwork[]
     /** Available tokens for payment */
     tokens: TokenOption[]
-    /** URL for card payment iframe */
-    cardPaymentUrl?: string
-    /** Callback for wallet connect payment */
-    onWalletConnectPayment?: (networkId: string, tokenId: string) => void
-    /** Callback for QR code payment */
-    onQrCodePayment?: (networkId: string, tokenId: string) => void
+    onWalletConnectPaymentComplete: (networdId: string, tokenId: string) => void
+    onWalletConnectPaymentError: (error: Error) => void
+    onQrCodePaymentComplete: (networdId: string, tokenId: string) => void
+    onQrCodePaymentError: (error: Error) => void
+    onCardPaymentComplete: () => void
+    onCardPaymentError: (error: Error) => void
+    amount: string
+    env: env
+    paymentLinkId: string
+    recipientWalletAddress: {
+        sui?: string,
+        evm?: string
+    }
     /** Custom text for wallet connect button */
     walletConnectButtonText?: string
     /** Custom text for QR code button */
@@ -109,8 +116,6 @@ export interface PaymentMethodProps {
     cardButtonText?: string
     /** Additional CSS class name for buttons */
     buttonClassName?: string
-    /** Wallet address for QR code payment */
-    walletAddress?: string
     /** Title for card payment dialog */
     dialogTitle?: string
     /** Description for card payment dialog */
@@ -153,6 +158,7 @@ export interface SubscriptionCheckoutProps extends PaymentMethodProps {
 export interface PaymentOptionsProps extends PaymentMethodProps {
     defaultTab?: "wallet" | "qrcode" | "card"
     onTabChange?: (tab: string) => void
+    paymentType: PaymentType
 }
 
 /**
@@ -175,7 +181,17 @@ export interface InvoiceCheckoutProps extends PaymentMethodProps {
     businessName: string
     businessLogo?: string
     invoiceId: string
-    amount: number
+    currency?: string
+    description?: string
+    className?: string
+    footerText?: string
+}
+
+export interface PaymentLinkCheckoutProps extends PaymentMethodProps {
+    businessName: string
+    businessLogo?: string
+    bannerImage?: string
+    title?: string
     currency?: string
     description?: string
     className?: string
@@ -197,14 +213,6 @@ export interface QrCodePaymentProps {
     tokens: TokenOption[];
 
     /**
-     * Callback function triggered when a payment is made.
-     * 
-     * @param networkId - The ID of the selected blockchain network.
-     * @param tokenId - The ID of the selected token.
-     */
-    onPayment: (networkId: string, tokenId: string) => void;
-
-    /**
      * Optional text to display on the payment button.
      */
     buttonText?: string;
@@ -216,9 +224,17 @@ export interface QrCodePaymentProps {
 
     paymentType: PaymentType;
 
-    verificationData: Partial<PaymentDto>;
+    onPaymentComplete: (networkId: string, tokenId: string) => void;
 
-    onPaymentComplete: () => void;
+    onPaymentError: (error: Error) => void;
+
+    recipientWalletAddress: {
+        sui?: string;
+        evm?: string
+    }
+    amount: string,
+    env: env,
+    paymentLinkId: string
 }
 
 /**
@@ -241,7 +257,9 @@ export interface WalletConnectPaymentProps {
      * @param networkId - The ID of the selected blockchain network.
      * @param tokenId - The ID of the selected token.
      */
-    onPayment: (networkId: string, tokenId: string) => void;
+    onPaymentComplete: (networkId: string, tokenId: string) => void;
+
+    onPaymentError: (error: Error) => void;
 
     /**
      * Optional text to display on the payment button.
@@ -252,6 +270,15 @@ export interface WalletConnectPaymentProps {
      * Optional CSS class name to apply to the payment button.
      */
     buttonClassName?: string;
+
+    recipientWalletAddress: {
+        sui?: string;
+        evm?: string
+    };
+    amount: string;
+    paymentLinkId: string;
+    env: env,
+    paymentType: PaymentType
 }
 
 export interface SavePaymentResponse extends Response {
@@ -286,7 +313,14 @@ export interface CardPaymentProps {
     dialogTitle?: string
     dialogDescription?: string
     amount: string
-    chain: 'eth' | 'avax' | 'pol' | 'base' | 'arb'
-    recipientWalletAddress: string
+    recipientWalletAddress: {
+        sui?: string;
+        evm?: string
+    }
     onPaymentComplete: () => void
+    onPaymentError: (error: Error) => void
+    networks: BlockchainNetwork[]
+    paymentType: PaymentType
+    paymentLinkId: string
+    env: env
 }
