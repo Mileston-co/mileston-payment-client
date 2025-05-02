@@ -1,10 +1,11 @@
+import { IGetUser } from "@/types"
 import { BASE_URL } from "./utils"
 
 export async function getUserDetails(
   apikey: string,
   headerBusinessId: string,
   pathBusinessId?: string
-): Promise<any> {
+): Promise<IGetUser> {
   if (!apikey) throw new Error("API key is required")
   if (!headerBusinessId) throw new Error("Header business ID is required")
 

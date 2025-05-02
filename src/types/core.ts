@@ -211,3 +211,28 @@ export interface OnRampPaymentStatusResponse {
 
 
 export type Token = "USDC" | "USDT" | "AVAX" | "ETH" | "POL"
+
+
+interface IResponse {
+    statusCode: number;
+}
+
+interface IWalletAddress {
+    [key: string]: string;
+}
+
+export interface IGetUser extends IResponse {
+    onboarded?: boolean;
+    businessName?: string;
+    businessAddress?: string;
+    businessIndustry?: string;
+    businessDescription?: string;
+    businessAdminFirstName?: string;
+    businessAdminLastName?: string;
+    businessAdminEmail?: string;
+    image?: string;
+    deleteKeys?: boolean;
+    walletBalance: string;
+    walletAddress: IWalletAddress;
+    isSecretCopied: boolean;
+}

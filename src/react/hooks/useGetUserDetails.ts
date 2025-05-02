@@ -1,9 +1,10 @@
 import { getUserDetails } from "@/core/fetchUser"
 import { useEffect, useState } from "react"
 import { usePaymentContext } from "../components"
+import { IGetUser } from "@/types"
 
 export function useUserDetails(pathBusinessId?: string) {
-    const [data, setData] = useState<any>(null)
+    const [data, setData] = useState<IGetUser | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<Error | null>(null)
 
