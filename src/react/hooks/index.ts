@@ -4,3 +4,4 @@ export * from './useGetOnRampPaymentStatus';
 export * from './usePayment';
 export * from './useSavePayment'
 export * from './useSuiPayment'
+export * from './useGetUserDetails'
