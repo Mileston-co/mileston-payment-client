@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
-import { 
-    OptionsForPayment, 
-    PaymentResponse 
+import {
+  OptionsForPayment,
+  PaymentTypeToResponseMap,
 } from '../../types';
 import { fetchPayment } from '../../core';
 import { usePaymentContext } from '../components/PaymentContext';
 
-export function useFetchPayment(options: OptionsForPayment) {
-  const [data, setData] = useState<PaymentResponse | undefined>(undefined);
-  const [error, setError] = useState<string | undefined>(undefined);
+export function useFetchPayment<T extends OptionsForPayment>(
+  options: T
+) {
+  const [data, setData] = useState<PaymentTypeToResponseMap[T['paymentType']]>();
+  const [error, setError] = useState<string | undefined>();
   const [loading, setLoading] = useState<boolean>(true);
   const { apikey, businessid } = usePaymentContext();
 
@@ -17,22 +19,21 @@ export function useFetchPayment(options: OptionsForPayment) {
 
     async function load() {
       setLoading(true);
+      try {
+        const result = await fetchPayment({
+          apikey,
+          businessid,
+          ...options,
+        });
 
-      const result = await fetchPayment({
-        apikey,
-        businessid,
-        ...options
-      });
-
-      if (!isMounted) return;
-
-      if (result.error) {
-        setError(result.error);
-      } else {
-        setData(result.data);
+        if (!isMounted) return;
+        setData(result);
+      } catch (err: any) {
+        if (!isMounted) return;
+        setError(err.message || 'Something went wrong.');
+      } finally {
+        if (isMounted) setLoading(false);
       }
-
-      setLoading(false);
     }
 
     load();

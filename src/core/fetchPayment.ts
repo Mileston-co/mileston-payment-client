@@ -1,7 +1,10 @@
 import {
+    FetchInvoiceResponse,
+    FetchPaymentLinkResponse,
+    FetchRecurringPaymentResponse,
     FetchPaymentOptions,
-    FetchPaymentResult,
-    PaymentType
+    PaymentType,
+    PaymentTypeToResponseMap
 } from "../types";
 import { BASE_URL } from "./utils";
 
@@ -11,15 +14,13 @@ const paymentTypeToPattern: Record<PaymentType, string> = {
     'recurring': 'recurring.get',
 };
 
-export async function fetchPayment(
-    options: FetchPaymentOptions
-): Promise<FetchPaymentResult> {
+export async function fetchPayment<T extends FetchPaymentOptions>(
+    options: T
+): Promise<PaymentTypeToResponseMap[T['paymentType']]> {
     const { apikey, businessid, paymentId, paymentType } = options;
     const pattern = paymentTypeToPattern[paymentType];
 
-    if (!pattern) {
-        return { loading: false, error: 'Invalid payment type provided.' };
-    }
+    if (!pattern) throw new Error('Invalid payment type.');
 
     const url = `${BASE_URL}/data/${pattern}/${paymentId}`;
 
@@ -35,13 +36,13 @@ export async function fetchPayment(
 
         if (!res.ok) {
             const errorData = await res.json();
-            return { loading: false, error: errorData.message || 'Failed to fetch payment details.' };
+            throw new Error(errorData.message || 'Failed to fetch payment.');
         }
 
         const data = await res.json();
-        return { data, loading: false };
+        return data as PaymentTypeToResponseMap[T['paymentType']];
     } catch (err: any) {
-        console.error('Payment fetch error:', err);
-        return { loading: false, error: err.message || 'Something went wrong.' };
+        console.error('fetchPayment error:', err);
+        throw new Error(err.message || 'Something went wrong.');
     }
 }

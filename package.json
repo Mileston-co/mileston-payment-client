@@ -1,6 +1,6 @@
 {
   "name": "mileston-payment-client",
-  "version": "0.3.2",
+  "version": "0.5.0",
   "description": "A customizable payment components for Mileston payments",
   "main": "dist/index.js",
   "module": "dist/index.mjs",

@@ -48,8 +48,6 @@ export interface MilestonPayButtonOptions {
 }
 
 
-export type PaymentType = 'invoice' | 'payment-link' | 'recurring';
-
 export type PaymentResponse = FetchInvoiceResponse | FetchPaymentLinkResponse | FetchRecurringPaymentResponse;
 
 export interface FetchPaymentOptions extends OptionsForPayment {
@@ -61,6 +59,8 @@ export interface OptionsForPayment {
     paymentId: string;
     paymentType: PaymentType;
 }
+
+export type PaymentType = 'invoice' | 'payment-link' | 'recurring';
 
 export interface FetchPaymentResult {
     data?: PaymentResponse;
@@ -95,6 +95,12 @@ export interface InvoiceData {
     customerEmail?: string;
     dueDate?: Date;
     status: 'pending' | 'paid';
+}
+
+export interface PaymentTypeToResponseMap {
+    invoice: FetchInvoiceResponse;
+    'payment-link': FetchPaymentLinkResponse;
+    recurring: FetchRecurringPaymentResponse;
 }
 
 export interface PaymentLinkData extends Partial<CreatePaymentLinkData> {
@@ -196,13 +202,12 @@ export interface OnRampPaymentStatusResponse {
     statusCode: number;
     message: string;
     data: {
-      data: {
-        status: "COMPLETED";
-        transactionHash: string;
-      };
+        data: {
+            status: "COMPLETED";
+            transactionHash: string;
+        };
     };
-  }
+}
 
 
-  export type Token = "USDC" | "USDT" | "AVAX" | "ETH" | "POL"
-  
+export type Token = "USDC" | "USDT" | "AVAX" | "ETH" | "POL"
