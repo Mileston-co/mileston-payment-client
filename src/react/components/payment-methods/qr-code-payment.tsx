@@ -9,10 +9,9 @@ import { cn } from "../lib/utils"
 import { QrCodePaymentProps, Token} from "@/types"
 import { useGetPaymentWallet, useVerifyPaymentWithWallet } from "@/react/hooks"
 import { usePaymentContext } from "../PaymentContext"
+import { getSupportedNetworks, getSupportedTokens } from "./utils"
 
 export function QrCodePayment({
-  networks = [],
-  tokens = [],
   buttonText = "Generate Payment QR",
   buttonClassName,
   paymentType,
@@ -23,6 +22,9 @@ export function QrCodePayment({
   env,
   paymentLinkId
 }: QrCodePaymentProps) {
+  const tokens = getSupportedTokens(recipientWalletAddress)
+  const networks = getSupportedNetworks(recipientWalletAddress)
+
   const [selectedNetwork, setSelectedNetwork] = useState<string>(networks[0]?.id || "")
   const [selectedToken, setSelectedToken] = useState<string>("")
   const [showQrCode, setShowQrCode] = useState(false)

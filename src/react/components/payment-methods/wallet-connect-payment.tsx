@@ -10,10 +10,9 @@ import { ConnectButton, useCurrentAccount } from "@mysten/dapp-kit";
 import { handlePayWithEVMWalletConnect } from "@/core";
 import { useSavePayment, useSuiPayment } from "@/react/hooks";
 import { usePaymentContext } from "../PaymentContext";
+import { getSupportedNetworks, getSupportedTokens } from "./utils";
 
 export function WalletConnectPayment({
-  networks = [],
-  tokens = [],
   onPaymentComplete,
   onPaymentError,
   buttonText = "Connect Wallet & Pay",
@@ -24,6 +23,9 @@ export function WalletConnectPayment({
   env = "test",
   paymentType
 }: WalletConnectPaymentProps) {
+  const tokens = getSupportedTokens(recipientWalletAddress)
+  const networks = getSupportedNetworks(recipientWalletAddress)
+
   const [selectedNetwork, setSelectedNetwork] = useState<string>(networks[0]?.id || "");
   const [selectedToken, setSelectedToken] = useState<string>("");
   const [isWalletConnected, setIsWalletConnected] = useState<boolean>(false);

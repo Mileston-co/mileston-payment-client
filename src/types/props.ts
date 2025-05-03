@@ -324,3 +324,18 @@ export interface CardPaymentProps {
     paymentLinkId: string
     env: env
 }
+
+
+export type TokenMetadata = {
+    id: string
+    name: string
+    symbol: string
+    networkId: string
+    icon: string
+}
+
+export type Network = {
+    id: string
+    name: string
+    icon: string
+}

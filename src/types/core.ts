@@ -95,6 +95,7 @@ export interface InvoiceData {
     customerEmail?: string;
     dueDate?: Date;
     status: 'pending' | 'paid';
+    env: env;
 }
 
 export interface PaymentTypeToResponseMap {

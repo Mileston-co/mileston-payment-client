@@ -7,6 +7,7 @@ import { CardPaymentProps } from "@/types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Label } from "../ui/label";
 import { usePaymentContext } from "../PaymentContext";
+import { getSupportedNetworks } from "./utils";
 
 export function CardPayment({
   buttonText = "Pay with Card",
@@ -17,7 +18,6 @@ export function CardPayment({
   recipientWalletAddress,
   onPaymentComplete,
   onPaymentError,
-  networks = [],
   paymentType,
   paymentLinkId,
   env
@@ -25,6 +25,9 @@ export function CardPayment({
   const [isCardModalOpen, setIsCardModalOpen] = useState(false);
   const [paymentId, setPaymentId] = useState<string | null>(null);
   const [cardPaymentUrl, setCardPaymentUrl] = useState<string | null>(null);
+
+  const networks = getSupportedNetworks(recipientWalletAddress);
+
   const [selectedNetwork, setSelectedNetwork] = useState<string>(networks[0]?.id || "");
 
   const { fetchOnRampData, loading: fetchingPaymentLink, error: paymentLinkError } = useGetOnRampData();
