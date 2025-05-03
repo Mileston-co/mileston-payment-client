@@ -3,5 +3,5 @@ node_modules/
 .git/
 .vscode/
 .env
-/mileston-payment-client-0.3.2.tgz
+/*.tgz
 .github
