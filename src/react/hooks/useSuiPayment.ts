@@ -4,9 +4,9 @@ import {
     useDisconnectWallet, 
     useSignAndExecuteTransaction 
 } from '@mysten/dapp-kit';
-import { Transaction } from '@mysten/sui/dist/cjs/transactions';
 import { getUSDContractAddress } from './utils';
 import { env } from '@/types/core';
+import { Transaction } from '@mysten/sui/transactions';
 
 export const useSuiPayment = (env: env) => {
   const currentAccount = useCurrentAccount();
