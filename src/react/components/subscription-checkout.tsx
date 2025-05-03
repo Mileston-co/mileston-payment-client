@@ -11,8 +11,6 @@ export function SubscriptionCheckout({
   businessName,
   businessLogo,
   plan,
-  networks = [],
-  tokens = [],
   walletConnectButtonText = "Subscribe with Wallet",
   qrCodeButtonText = "Generate Subscription QR",
   cardButtonText = "Subscribe with Card",
@@ -91,8 +89,6 @@ export function SubscriptionCheckout({
         </div>
 
         <PaymentOptions
-          networks={networks}
-          tokens={tokens}
           walletConnectButtonText={walletConnectButtonText}
           qrCodeButtonText={qrCodeButtonText}
           cardButtonText={cardButtonText}

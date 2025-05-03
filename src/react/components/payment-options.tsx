@@ -9,8 +9,6 @@ import { CardPayment } from "./payment-methods/card-payment"
 import { PaymentOptionsProps } from "@/types"
 
 export function PaymentOptions({
-  networks = [],
-  tokens = [],
   onWalletConnectPaymentComplete,
   onWalletConnectPaymentError,
   onQrCodePaymentComplete,
@@ -60,8 +58,6 @@ export function PaymentOptions({
       {/* Wallet Connect Tab */}
       <TabsContent value="wallet">
         <WalletConnectPayment
-          networks={networks}
-          tokens={tokens}
           onPaymentComplete={(networkId: string, tokenId: string) => onWalletConnectPaymentComplete?.(networkId, tokenId)}
           onPaymentError={(error) => onWalletConnectPaymentError(error)}
           recipientWalletAddress={recipientWalletAddress}
@@ -77,8 +73,6 @@ export function PaymentOptions({
       {/* QR Code Tab */}
       <TabsContent value="qrcode">
         <QrCodePayment
-          networks={networks}
-          tokens={tokens}
           onPaymentComplete={(networkId: string, tokenId: string) => onQrCodePaymentComplete?.(networkId, tokenId)}
           buttonText={qrCodeButtonText}
           buttonClassName={buttonClassName}
@@ -102,7 +96,6 @@ export function PaymentOptions({
           recipientWalletAddress={recipientWalletAddress}
           onPaymentComplete={onCardPaymentComplete}
           onPaymentError={(error) => onCardPaymentError(error)}
-          networks={networks}
           paymentLinkId={paymentLinkId}
           env={env} 
           paymentType={paymentType}          

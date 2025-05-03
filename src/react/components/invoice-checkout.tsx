@@ -17,8 +17,6 @@ export function InvoiceCheckout({
   businessLogo,
   currency = "USD",
   description,
-  networks = [],
-  tokens = [],
   walletConnectButtonText = "Connect Wallet & Pay",
   qrCodeButtonText = "Generate Payment QR",
   cardButtonText = "Pay with Card",
@@ -73,8 +71,6 @@ export function InvoiceCheckout({
         </div>
 
         <PaymentOptions
-          networks={networks}
-          tokens={tokens}
           walletConnectButtonText={walletConnectButtonText}
           qrCodeButtonText={qrCodeButtonText}
           cardButtonText={cardButtonText}

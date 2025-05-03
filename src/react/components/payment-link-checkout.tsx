@@ -13,8 +13,6 @@ export function PaymentLinkCheckout({
   title,
   currency = "USD",
   description,
-  networks = [],
-  tokens = [],
   walletConnectButtonText = "Connect Wallet & Pay",
   qrCodeButtonText = "Generate Payment QR",
   cardButtonText = "Pay with Card",
@@ -76,8 +74,6 @@ export function PaymentLinkCheckout({
         </div>
 
         <PaymentOptions
-          networks={networks}
-          tokens={tokens}
           walletConnectButtonText={walletConnectButtonText}
           qrCodeButtonText={qrCodeButtonText}
           cardButtonText={cardButtonText}

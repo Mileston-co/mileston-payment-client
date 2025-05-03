@@ -90,10 +90,10 @@ export interface FetchRecurringPaymentResponse {
 
 export interface InvoiceData {
     invoiceId: string;
-    amount?: string;
-    itemName?: string;
-    customerEmail?: string;
-    dueDate?: Date;
+    amount: string;
+    itemName: string;
+    customerEmail: string;
+    dueDate: Date;
     status: 'pending' | 'paid';
     env: env;
 }
@@ -110,23 +110,25 @@ export interface PaymentLinkData extends Partial<CreatePaymentLinkData> {
 
 export interface CreatePaymentLinkData {
     amount: string;
-    title?: string;
-    description?: string;
-    redirectUrl?: string;
+    title: string;
+    description: string;
+    redirectUrl: string;
     logoUrl?: string;
     bannerUrl?: string;
+    env: env;
 }
 
 export interface RecurringPaymentData {
     recurringPaymentId: string;
-    amount?: string;
-    subscriptionName?: string;
-    subscriberFullName?: string;
-    subscriberEmail?: string;
+    amount: string;
+    subscriptionName: string;
+    subscriberFullName: string;
+    subscriberEmail: string;
     subscriberWalletAddress?: string;
-    currentPaymentStatus?: "paid" | "unpaid";
-    recurringDate?: Date;
-    recurringInterval?: number;
+    currentPaymentStatus: "paid" | "unpaid";
+    recurringDate: Date;
+    recurringInterval: number;
+    env: env;
 }
 
 

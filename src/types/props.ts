@@ -40,34 +40,6 @@ export interface Theme {
 }
 
 /**
- * Represents a blockchain network
- */
-export interface BlockchainNetwork {
-    /** Unique identifier for the network */
-    id: string
-    /** Display name of the network */
-    name: string
-    /** Optional URL to the network's icon */
-    icon?: string
-}
-
-/**
- * Represents a token option for payment
- */
-export interface TokenOption {
-    /** Unique identifier for the token */
-    id: string
-    /** Full name of the token */
-    name: string
-    /** Symbol of the token (e.g., ETH, BTC) */
-    symbol: string
-    /** Optional URL to the token's icon */
-    icon?: string
-    /** ID of the network this token belongs to */
-    networkId: string
-}
-
-/**
  * Represents a subscription plan
  */
 export interface SubscriptionPlan {
@@ -91,10 +63,6 @@ export interface SubscriptionPlan {
  * Common props for payment method components
  */
 export interface PaymentMethodProps {
-    /** Available blockchain networks */
-    networks: BlockchainNetwork[]
-    /** Available tokens for payment */
-    tokens: TokenOption[]
     onWalletConnectPaymentComplete: (networdId: string, tokenId: string) => void
     onWalletConnectPaymentError: (error: Error) => void
     onQrCodePaymentComplete: (networdId: string, tokenId: string) => void
@@ -105,8 +73,7 @@ export interface PaymentMethodProps {
     env: env
     paymentLinkId: string
     recipientWalletAddress: {
-        sui?: string,
-        evm?: string
+        [key: string]: string;
     }
     /** Custom text for wallet connect button */
     walletConnectButtonText?: string
@@ -203,16 +170,6 @@ export interface PaymentLinkCheckoutProps extends PaymentMethodProps {
  */
 export interface QrCodePaymentProps {
     /**
-     * List of blockchain networks available for payment.
-     */
-    networks: BlockchainNetwork[];
-
-    /**
-     * List of token options available for payment.
-     */
-    tokens: TokenOption[];
-
-    /**
      * Optional text to display on the payment button.
      */
     buttonText?: string;
@@ -229,8 +186,7 @@ export interface QrCodePaymentProps {
     onPaymentError: (error: Error) => void;
 
     recipientWalletAddress: {
-        sui?: string;
-        evm?: string
+        [key: string]: string;
     }
     amount: string,
     env: env,
@@ -241,16 +197,6 @@ export interface QrCodePaymentProps {
  * Props for the WalletConnectPayment component.
  */
 export interface WalletConnectPaymentProps {
-    /**
-     * List of blockchain networks available for payment.
-     */
-    networks: BlockchainNetwork[];
-
-    /**
-     * List of token options available for selection.
-     */
-    tokens: TokenOption[];
-
     /**
      * Callback function triggered when a payment is initiated.
      * 
@@ -272,8 +218,7 @@ export interface WalletConnectPaymentProps {
     buttonClassName?: string;
 
     recipientWalletAddress: {
-        sui?: string;
-        evm?: string
+        [key: string]: string;
     };
     amount: string;
     paymentLinkId: string;
@@ -314,12 +259,10 @@ export interface CardPaymentProps {
     dialogDescription?: string
     amount: string
     recipientWalletAddress: {
-        sui?: string;
-        evm?: string
+        [key: string]: string;
     }
     onPaymentComplete: () => void
     onPaymentError: (error: Error) => void
-    networks: BlockchainNetwork[]
     paymentType: PaymentType
     paymentLinkId: string
     env: env
