@@ -22,7 +22,7 @@ export function getSupportedTokens(params: Record<string, string>): TokenMetadat
         eth: [
             { id: "ETH", name: "Ethereum", symbol: "ETH", networkId: "eth", icon: "" },
             { id: "USDC", name: "USD Coin", symbol: "USDC", networkId: "eth", icon: "" },
-            { id: "USDT", name: "Tether USD", symbol: "USDT", networkId: "eth", icon: "" },
+            { id: "USDT", name: "Tether", symbol: "USDT", networkId: "eth", icon: "" },
         ],
         base: [
             { id: "ETH", name: "Ethereum", symbol: "ETH", networkId: "base", icon: "" },

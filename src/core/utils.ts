@@ -111,4 +111,4 @@ export const patternMap: Record<PaymentType, string> = {
     recurring: 'recurring.save',
 };
 
-export const BASE_URL = 'https://www.checkout-service.mileston.co/checkout'
+export const BASE_URL = 'http://localhost:9000/checkout'
