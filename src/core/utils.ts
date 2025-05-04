@@ -111,7 +111,7 @@ export const patternMap: Record<PaymentType, string> = {
     recurring: 'recurring.save',
 };
 
-export const BASE_URL = 'http://localhost:9000/checkout'
+export const BASE_URL = 'https://checkout-service.mileton.co/checkout'
 
 
 // Price cache
