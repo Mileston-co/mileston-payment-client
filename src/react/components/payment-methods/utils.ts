@@ -13,7 +13,7 @@ export function getSupportedNetworks(params: Record<string, string>): Network[] 
     return Object.keys(params).map((id) => ({
         id,
         name: allNetworks[id]?.name || id,
-        icon: `https://cryptologos.cc/logos/${(allNetworks[id]?.name || id).toLowerCase()}-${id}-logo.png?v=040`,
+        icon: `https://assets.parqet.com/logos/crypto/${id.toUpperCase()}?format=png`,
     }))
 }
 
@@ -47,7 +47,7 @@ export function getSupportedTokens(params: Record<string, string>): TokenMetadat
     }
 
     const formatIcon = (name: string, symbol: string) =>
-        `https://cryptologos.cc/logos/${name.toLowerCase().replace(/\s+/g, "-")}-${symbol.toLowerCase()}-logo.png?v=040`
+        `https://assets.parqet.com/logos/crypto/${symbol}?format=png`
 
     const tokens: TokenMetadata[] = []
 

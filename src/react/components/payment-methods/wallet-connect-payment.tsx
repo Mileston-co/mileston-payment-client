@@ -42,6 +42,8 @@ export function WalletConnectPayment({
     setSelectedToken("");
   };
 
+  const { sui, avax, base, eth, arb, pol } = recipientWalletAddress;
+
   const handlePayWithWallet = async () => {
     try {
       if (selectedNetwork === "sui") {
@@ -60,8 +62,8 @@ export function WalletConnectPayment({
           chain: "sui",
           env,
         },
-        selectedToken === 'ETH' || selectedToken === 'POL' || selectedToken === 'AVAX' ? selectedToken : undefined
-      );
+          selectedToken === 'ETH' || selectedToken === 'POL' || selectedToken === 'AVAX' ? selectedToken : undefined
+        );
 
         if (onPaymentComplete) {
           onPaymentComplete(selectedNetwork, selectedToken);
@@ -70,7 +72,7 @@ export function WalletConnectPayment({
         const { txHash, feeHash, payerAddress } = await handlePayWithEVMWalletConnect({
           env,
           evm: selectedNetwork as evmType,
-          recipientAddress: selectedNetwork === 'sui' ? recipientWalletAddress.sui as string : recipientWalletAddress.evm as string,
+          recipientAddress: selectedNetwork === 'sui' ? sui : eth ?? base ?? pol ?? avax ?? arb,
           amount,
           token: selectedToken as Token,
         });
@@ -86,8 +88,8 @@ export function WalletConnectPayment({
           chain: selectedNetwork as any,
           env,
         },
-        selectedToken === 'ETH' || selectedToken === 'POL' || selectedToken === 'AVAX' ? selectedToken : undefined
-      );
+          selectedToken === 'ETH' || selectedToken === 'POL' || selectedToken === 'AVAX' ? selectedToken : undefined
+        );
 
         if (onPaymentComplete) {
           onPaymentComplete(selectedNetwork, selectedToken);
@@ -160,28 +162,31 @@ export function WalletConnectPayment({
         </Select>
       </div>
 
-      {selectedNetwork === "sui" ? (
-        <ConnectButton
-          style={{
-            marginBottom: "0rem",
-            backgroundColor: "transparent",
-            color: "inherit",
-            border: "none",
-            padding: "0px",
-          }}
-          disabled={isWalletConnected}
-          connectText={buttonText}
-        />
-      ) : (
-        <Button
-          className={`w-full ${buttonClassName || ""}`}
-          disabled={!selectedNetwork || !selectedToken}
-          onClick={handlePayWithWallet}
-        >
-          <Wallet className="mr-2 h-4 w-4" />
-          {buttonText}
-        </Button>
-      )}
+      <div className="flex items-center justify-center">
+        {selectedNetwork === "sui" ? (
+          <ConnectButton
+            style={{
+              marginBottom: "0rem",
+              backgroundColor: "inherit",
+              color: "inherit",
+              border: "none",
+              padding: "0px",
+              width: "100%"
+            }}
+            disabled={isWalletConnected}
+            connectText={buttonText}
+          />
+        ) : (
+          <Button
+            className={`w-full ${buttonClassName || ""}`}
+            disabled={!selectedNetwork || !selectedToken}
+            onClick={handlePayWithWallet}
+          >
+            <Wallet className="mr-2 h-4 w-4" />
+            {buttonText}
+          </Button>
+        )}
+      </div>
     </div>
   );
 }

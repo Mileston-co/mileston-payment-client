@@ -112,3 +112,57 @@ export const patternMap: Record<PaymentType, string> = {
 };
 
 export const BASE_URL = 'http://localhost:9000/checkout'
+
+
+// Price cache
+const priceCache: { [token: string]: { price: number; timestamp: number } } = {};
+
+// Mapping from internal token symbol to CoinGecko ID
+const tokenToCoingeckoId: { [symbol: string]: string } = {
+    ETH: 'ethereum',
+    POL: 'matic-network',
+    SUI: 'sui',
+    AVAX: 'avalanche-2',
+    USDC: 'usd-coin',
+    USDT: 'tether',
+};
+
+// Function to fetch token price in USD
+export async function getTokenPriceUSD(tokenSymbol: string): Promise<number | null> {
+    const symbol = tokenSymbol.toUpperCase();
+    const cached = priceCache[symbol];
+    if (cached && Date.now() - cached.timestamp < 3600000) {
+        console.log("Cache Hit:", cached);
+        return cached.price;
+    }
+
+    try {
+        const coingeckoIds = Object.values(tokenToCoingeckoId).join(',');
+        const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${coingeckoIds}&vs_currencies=usd`, {
+            headers: {
+                'x-cg-demo-api-key': 'CG-13fTWkgsW6GkmVdg9mm6eqU7',
+            },
+        });
+
+        const data = await res.json();
+        console.log("Data from CoinGecko:", data);
+
+        // Cache all prices at once
+        for (const [symbolKey, cgId] of Object.entries(tokenToCoingeckoId)) {
+            const price = data[cgId]?.usd;
+            if (price) {
+                priceCache[symbolKey] = {
+                    price,
+                    timestamp: Date.now(),
+                };
+            }
+        }
+
+        console.log("Price from query:", priceCache[symbol]?.price ?? null);
+
+        return priceCache[symbol]?.price ?? null;
+    } catch (error) {
+        console.error('🔥 Failed to fetch token prices:', error);
+        return null;
+    }
+}

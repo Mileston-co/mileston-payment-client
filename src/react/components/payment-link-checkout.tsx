@@ -96,7 +96,7 @@ export function PaymentLinkCheckout({
         />
       </CardContent>
       <CardFooter className="flex justify-center text-sm text-muted-foreground">
-        <span>{footerText || "Secure payment powered by CryptoCheckout"}</span>
+        <span>{footerText || "Secure payment powered by Mileston"}</span>
       </CardFooter>
     </Card>
   )

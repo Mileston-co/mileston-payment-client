@@ -12,7 +12,8 @@ import {
     getUsdcEVMContractAddress, 
     usdcABI,
     usdtABI,
-    getUsdtEVMContractAddress
+    getUsdtEVMContractAddress,
+    getTokenPriceUSD
 } from './utils';
 
 /**
@@ -49,49 +50,65 @@ import {
  * ```
  */
 
-export async function handlePayWithEVMWalletConnect(
-    {
-        env,
-        evm,
-        recipientAddress,
-        amount,
-        token
-    }: PayWithWalletConnect
-): Promise<{ txHash: string; feeHash: string; payerAddress: string; }> {
+export async function handlePayWithEVMWalletConnect({
+    env,
+    evm,
+    recipientAddress,
+    amount,
+    token,
+}: PayWithWalletConnect): Promise<{ txHash: string; feeHash: string; payerAddress: string }> {
     try {
         const chain = getChain(env, evm);
         console.log("Creating clients....");
         const publicClient = createPublicClient({
             chain,
-            transport: http()
+            transport: http(),
         });
 
         const walletClient = createWalletClient({
             chain,
-            transport: custom(window.ethereum!)
+            transport: custom(window.ethereum!),
         });
 
         console.log("Requesting connection approval...");
         const [address] = await walletClient.requestAddresses();
 
-        const feePercentage = 0.0004;
-        const amountToSend = Number(amount);
-        const fee = amountToSend * feePercentage;
-        const netAmountToSend = amountToSend - fee;
+        const feePercentage = 0.004;
+        const amountInUSD = Number(amount);
+        const feeInUSD = amountInUSD * feePercentage;
+        const netAmountInUSD = amountInUSD - feeInUSD;
 
         let tokenAddress: `0x${string}` | null = null;
         let decimals = 18; // Default to 18 decimals for native tokens
+        let netAmountToSendInWei: bigint;
+        let feeInWei: bigint;
 
         if (token === 'USDC') {
             tokenAddress = getUsdcEVMContractAddress(env, evm) as `0x${string}`;
             decimals = 6; // USDC typically has 6 decimals
+            netAmountToSendInWei = BigInt(netAmountInUSD * 10 ** decimals);
+            feeInWei = BigInt(feeInUSD * 10 ** decimals);
         } else if (token === 'USDT') {
             tokenAddress = getUsdtEVMContractAddress(env, evm) as `0x${string}`;
             decimals = 6; // USDT typically has 6 decimals
+            netAmountToSendInWei = BigInt(netAmountInUSD * 10 ** decimals);
+            feeInWei = BigInt(feeInUSD * 10 ** decimals);
+        } else if (token === 'AVAX' || token === 'POL' || token === 'ETH') {
+            // Fetch token price in USD
+            const price = await getTokenPriceUSD(token);
+            if (!price) {
+                throw new Error(`Unable to fetch price for token: ${token}`);
+            }
+
+            const netAmountInToken = netAmountInUSD / price;
+            const feeInToken = feeInUSD / price;
+
+            netAmountToSendInWei = BigInt(netAmountInToken * 10 ** decimals);
+            feeInWei = BigInt(feeInToken * 10 ** decimals);
+        } else {
+            throw new Error(`Unsupported token type: ${token}`);
         }
 
-        const netAmountToSendInWei = BigInt(netAmountToSend * 10 ** decimals);
-        const feeInWei = BigInt(fee * 10 ** decimals);
         console.log({ feeInWei, netAmountToSendInWei });
 
         const feeWalletAddress = "0xEC891A037F932493624184970a283ab87398e0A6";
@@ -124,7 +141,7 @@ export async function handlePayWithEVMWalletConnect(
             return {
                 txHash: receipt1.transactionHash,
                 feeHash: receipt2.transactionHash,
-                payerAddress: address
+                payerAddress: address,
             };
         } else if (token === 'USDC' || token === 'USDT') {
             console.log("Encoding data for token transfer...");

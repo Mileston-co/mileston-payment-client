@@ -37,7 +37,7 @@ export function SubscriptionCheckout({
   const formatInterval = () => {
     const { interval, intervalCount } = plan
     if (intervalCount === 1) {
-      return interval.charAt(0).toUpperCase() + interval.slice(0, -2)
+      return interval.charAt(0).toUpperCase() + interval.slice(1)
     }
     return `Every ${intervalCount} ${interval}`
   }
@@ -112,7 +112,7 @@ export function SubscriptionCheckout({
       </CardContent>
       <CardFooter className="flex flex-col gap-2 text-sm text-muted-foreground">
         <span className="text-center w-full">{cancelText || "You can cancel your subscription at any time"}</span>
-        <span className="text-center w-full">{footerText || "Secure recurring payment powered by CryptoCheckout"}</span>
+        <span className="text-center w-full">{footerText || "Secure recurring payment powered by Mileston"}</span>
       </CardFooter>
     </Card>
   )

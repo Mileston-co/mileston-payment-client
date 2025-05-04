@@ -18,7 +18,7 @@ export async function savePayment({
     throw new Error(`Invalid payment type '${type}' passed! You must be sleep-typing bro 💤`);
   }
 
-  const url = new URL(`${BASE_URL}/save-payment${pattern}`)
+  const url = new URL(`${BASE_URL}/save-payment/${pattern}`)
 
   if (nativeTokens) {
     url.searchParams.append("nativeTokens", nativeTokens);
