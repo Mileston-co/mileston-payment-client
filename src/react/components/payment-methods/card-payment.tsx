@@ -35,6 +35,8 @@ export function CardPayment({
   const { triggerSavePayment } = useSavePayment();
   const { businessid } = usePaymentContext()
 
+  const { sui, avax, base, eth, arb, pol } = recipientWalletAddress;
+
   useEffect(() => {
     if (isCardModalOpen && selectedNetwork) {
       (async () => {
@@ -42,7 +44,7 @@ export function CardPayment({
           const res = await fetchOnRampData({
             amount,
             chain: selectedNetwork as any,
-            recipientWalletAddress: selectedNetwork === 'sui' ? recipientWalletAddress.sui as string : recipientWalletAddress.evm as string,
+            recipientWalletAddress: selectedNetwork === 'sui' ? sui : eth ?? base ?? pol ?? avax ?? arb,
           });
 
           if (res?.data?.id && res?.data?.link) {
@@ -65,15 +67,15 @@ export function CardPayment({
             id: paymentId,
             amount,
             chain: selectedNetwork as any,
-            recipientWalletAddress: selectedNetwork === 'sui' ? recipientWalletAddress.sui as string : recipientWalletAddress.evm as string,
+            recipientWalletAddress: selectedNetwork === 'sui' ? sui : eth ?? base ?? pol ?? avax ?? arb,
           });
 
           const paymentStatus = statusResponse?.data?.data?.status;
           if (paymentStatus === "COMPLETED") {
             await triggerSavePayment(paymentType, {
               paymentLinkId,
-              payer: selectedNetwork === 'sui' ? recipientWalletAddress.sui as string : recipientWalletAddress.evm as string,
-              recipientWalletAddress: selectedNetwork === 'sui' ? recipientWalletAddress.sui as string : recipientWalletAddress.evm as string,
+              payer: selectedNetwork === 'sui' ? sui : eth ?? base ?? pol ?? avax ?? arb,
+              recipientWalletAddress: selectedNetwork === 'sui' ? sui : eth ?? base ?? pol ?? avax ?? arb,
               amount: amount.toString(),
               userUUID: businessid,
               transactionSignature: statusResponse.data.data.transactionHash,

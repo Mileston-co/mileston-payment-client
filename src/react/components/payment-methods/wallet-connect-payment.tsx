@@ -48,14 +48,14 @@ export function WalletConnectPayment({
     try {
       if (selectedNetwork === "sui") {
         const { payerAddress, transactionHash } = await handleSuiPayment({
-          recipientWalletAddress: selectedNetwork === 'sui' ? recipientWalletAddress.sui as string : recipientWalletAddress.evm as string,
+          recipientWalletAddress: selectedNetwork === 'sui' ? sui : eth ?? base ?? pol ?? avax ?? arb,
           amount,
         });
 
         await triggerSavePayment(paymentType, {
           paymentLinkId,
           payer: payerAddress,
-          recipientWalletAddress: selectedNetwork === 'sui' ? recipientWalletAddress.sui as string : recipientWalletAddress.evm as string,
+          recipientWalletAddress: selectedNetwork === 'sui' ? sui : eth ?? base ?? pol ?? avax ?? arb,
           amount: amount.toString(),
           userUUID: businessid,
           transactionSignature: transactionHash,
@@ -80,7 +80,7 @@ export function WalletConnectPayment({
         await triggerSavePayment(paymentType, {
           paymentLinkId,
           payer: payerAddress,
-          recipientWalletAddress: selectedNetwork === 'sui' ? recipientWalletAddress.sui as string : recipientWalletAddress.evm as string,
+          recipientWalletAddress: selectedNetwork === 'sui' ? sui : eth ?? base ?? pol ?? avax ?? arb,
           amount: amount.toString(),
           userUUID: businessid,
           transactionSignature: txHash,

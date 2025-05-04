@@ -65,6 +65,8 @@ export function QrCodePayment({
   const selectedNetworkObj = networks.find((n) => n.id === selectedNetwork)
   const selectedTokenObj = tokens.find((t) => t.id === selectedToken)
 
+  const { sui, avax, base, eth, arb, pol } = recipientWalletAddress;
+
   // -- POLLING for verification --
   useEffect(() => {
     let interval: NodeJS.Timeout
@@ -80,7 +82,7 @@ export function QrCodePayment({
               publicKey: wallet.publicKey,
               amount,
               payable,
-              recipientWalletAddress: selectedNetwork === 'sui' ? recipientWalletAddress.sui as string : recipientWalletAddress.evm as string,
+              recipientWalletAddress: selectedNetwork === 'sui' ? sui : eth ?? base ?? pol ?? avax ?? arb,
               chain: selectedNetwork as any,
               env,
               userUUID: businessid,
