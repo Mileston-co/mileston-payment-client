@@ -10,7 +10,7 @@ import { QrCodePaymentProps, Token} from "@/types"
 import { useGetPaymentWallet, useVerifyPaymentWithWallet } from "@/react/hooks"
 import { usePaymentContext } from "../PaymentContext"
 import { getSupportedNetworks, getSupportedTokens } from "./utils"
-import QRCode from "react-qr-code";
+import { useQRCode } from 'react-qrcode'
 
 export function QrCodePayment({
   buttonText = "Generate Payment QR",
@@ -36,6 +36,8 @@ export function QrCodePayment({
   const { verify, loading: verifyingPayment } = useVerifyPaymentWithWallet()
 
   const { businessid } = usePaymentContext()
+
+  const dataUrl = useQRCode(wallet.publicKey)
 
   const availableTokens = tokens.filter((token) => token.networkId === selectedNetwork)
 
@@ -186,7 +188,7 @@ export function QrCodePayment({
           <div className="flex flex-col items-center justify-center py-4">
             <div className="bg-white p-2 rounded-lg mb-2">
               {wallet?.publicKey ? (
-                <QRCode value={wallet.publicKey} className="h-48 w-48 object-contain" />
+                <img src={dataUrl} alt="Payment QR Code" className="h-48 w-48 object-contain" />
               ) : (
                 <div className="h-48 w-48 bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
                   <QrCode size={120} className="text-primary" />

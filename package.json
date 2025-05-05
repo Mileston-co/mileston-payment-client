@@ -1,6 +1,6 @@
 {
   "name": "mileston-payment-client",
-  "version": "0.5.9",
+  "version": "0.6.0",
   "description": "A customizable payment components, hooks and functions for Mileston payments",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -49,7 +49,7 @@
     "clsx": "^2.1.1",
     "lucide-react": "^0.474.0",
     "next-themes": "^0.4.6",
-    "react-qr-code": "^2.0.15",
+    "react-qrcode": "^0.3.6",
     "tailwind-merge": "^3.2.0",
     "viem": "^2.28.0"
   }
