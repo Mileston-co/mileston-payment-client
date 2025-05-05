@@ -41,15 +41,15 @@ export function PaymentOptions({
   return (
     <Tabs defaultValue={defaultTab} value={selectedTab} onValueChange={handleTabChange} className="mt-5">
       <TabsList className="flex w-full justify-between gap-2">
-        <TabsTrigger value="wallet">
+        <TabsTrigger value="wallet" className="flex gap-2">
           <Wallet className="h-4 w-4" />
           <span className="hidden sm:inline">Wallet Connect</span>
         </TabsTrigger>
-        <TabsTrigger value="qrcode">
+        <TabsTrigger value="qrcode" className="flex gap-2">
           <QrCode className="h-4 w-4" />
           <span className="hidden sm:inline">QR Code</span>
         </TabsTrigger>
-        <TabsTrigger value="card">
+        <TabsTrigger value="card" className="flex gap-2">
           <CreditCard className="h-4 w-4" />
           <span className="hidden sm:inline">Card</span>
         </TabsTrigger>

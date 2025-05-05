@@ -235,7 +235,6 @@ interface Response {
 }
 
 export interface GetPaymentWallet extends Response {
-    qrCode: string;
     publicKey: string;
 }
 
