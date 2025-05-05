@@ -103,8 +103,8 @@ export async function handlePayWithEVMWalletConnect({
             const netAmountInToken = netAmountInUSD / price;
             const feeInToken = feeInUSD / price;
 
-            netAmountToSendInWei = BigInt(netAmountInToken * 10 ** decimals);
-            feeInWei = BigInt(feeInToken * 10 ** decimals);
+            netAmountToSendInWei = BigInt(Math.floor(netAmountInToken * 10 ** decimals));
+            feeInWei = BigInt(Math.floor(feeInToken * 10 ** decimals));
         } else {
             throw new Error(`Unsupported token type: ${token}`);
         }

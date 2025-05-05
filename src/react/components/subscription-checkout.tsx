@@ -29,7 +29,7 @@ export function SubscriptionCheckout({
   onCardPaymentComplete,
   onCardPaymentError,
   amount,
-  recipientWalletAddress
+  recipientWalletAddress,
 }: SubscriptionCheckoutProps) {
   const [selectedTab, setSelectedTab] = useState("wallet")
 
@@ -77,7 +77,7 @@ export function SubscriptionCheckout({
           </div>
           <div className="mt-4 flex items-end gap-1">
             <span className="text-2xl font-bold">
-              {plan.currency} {plan.amount.toFixed(2)}
+              {plan?.currency || 'USD'} {plan.amount.toFixed(2)}
             </span>
             <span className="text-sm text-muted-foreground">/{plan.interval.slice(0, -2)}</span>
           </div>

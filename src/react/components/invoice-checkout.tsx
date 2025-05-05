@@ -93,7 +93,7 @@ export function InvoiceCheckout({
         />
       </CardContent>
 
-      <CardFooter className="flex justify-between text-sm text-muted-foreground">
+      <CardFooter className="flex justify-center items-center text-sm text-muted-foreground">
         <span>{footerText || "Secure payment by Mileston"}</span>
       </CardFooter>
     </Card>

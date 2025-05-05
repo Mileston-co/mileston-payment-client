@@ -40,7 +40,7 @@ export function PaymentOptions({
 
   return (
     <Tabs defaultValue={defaultTab} value={selectedTab} onValueChange={handleTabChange} className="mt-5">
-      <TabsList className="grid w-full grid-cols-3">
+      <TabsList className="flex w-full justify-between gap-2">
         <TabsTrigger value="wallet">
           <Wallet className="h-4 w-4" />
           <span className="hidden sm:inline">Wallet Connect</span>

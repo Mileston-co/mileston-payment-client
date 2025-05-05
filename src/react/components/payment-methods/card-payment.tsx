@@ -1,10 +1,19 @@
-import { useState, useEffect } from "react";
-import { useGetOnRampData, useGetOnRampPaymentStatus, useSavePayment } from "@/react/hooks/index";
+import { useState, useEffect, useCallback } from "react";
+import {
+  useGetOnRampData,
+  useGetOnRampPaymentStatus,
+  useSavePayment,
+} from "@/react/hooks/index";
 import { Button } from "../ui/button";
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/react/components/ui/dialog";
 import { CreditCard } from "lucide-react";
 import { CardPaymentProps } from "@/types";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 import { Label } from "../ui/label";
 import { usePaymentContext } from "../PaymentContext";
 import { getSupportedNetworks } from "./utils";
@@ -12,88 +21,118 @@ import { getSupportedNetworks } from "./utils";
 export function CardPayment({
   buttonText = "Pay with Card",
   buttonClassName,
-  dialogTitle = "Card Payment",
-  dialogDescription = "Complete your payment using the secure payment form",
   amount,
   recipientWalletAddress,
   onPaymentComplete,
   onPaymentError,
   paymentType,
   paymentLinkId,
-  env
+  env,
 }: CardPaymentProps) {
-  const [isCardModalOpen, setIsCardModalOpen] = useState(false);
   const [paymentId, setPaymentId] = useState<string | null>(null);
-  const [cardPaymentUrl, setCardPaymentUrl] = useState<string | null>(null);
+  const [popupWindow, setPopupWindow] = useState<Window | null>(null);
 
   const networks = getSupportedNetworks(recipientWalletAddress);
+  const [selectedNetwork, setSelectedNetwork] = useState<string>(
+    networks[0]?.id || ""
+  );
 
-  const [selectedNetwork, setSelectedNetwork] = useState<string>(networks[0]?.id || "");
+  const [loading, setLoading] = useState(false);
 
   const { fetchOnRampData, loading: fetchingPaymentLink, error: paymentLinkError } = useGetOnRampData();
   const { fetchOnRampPaymentStatus } = useGetOnRampPaymentStatus();
   const { triggerSavePayment } = useSavePayment();
-  const { businessid } = usePaymentContext()
+  const { businessid } = usePaymentContext();
 
   const { sui, avax, base, eth, arb, pol } = recipientWalletAddress;
 
-  useEffect(() => {
-    if (isCardModalOpen && selectedNetwork) {
-      (async () => {
-        try {
-          const res = await fetchOnRampData({
-            amount,
-            chain: selectedNetwork as any,
-            recipientWalletAddress: selectedNetwork === 'sui' ? sui : eth ?? base ?? pol ?? avax ?? arb,
-          });
+  const getWalletByNetwork = (network: string) =>
+    network === "sui"
+      ? sui
+      : eth ?? base ?? pol ?? avax ?? arb;
 
-          if (res?.data?.id && res?.data?.link) {
-            setPaymentId(res.data.id);
-            setCardPaymentUrl(res.data.link);
-          }
-        } catch (error: any) {
-          console.error("Failed to fetch card payment link:", error);
-          onPaymentError(error);
-        }
-      })();
+  const openCenteredPopup = (url: string, title: string, width: number, height: number) => {
+    const left = window.screenX + (window.outerWidth - width) / 2;
+    const top = window.screenY + (window.outerHeight - height) / 2;
+    const specs = `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`;
+    return window.open(url, title, specs);
+  };
+
+  const initiateCardPayment = useCallback(async () => {
+    try {
+      if (selectedNetwork === 'sui') {
+        const error = new Error("SUI is not supported for card payments.");
+        console.error(error.message);
+        onPaymentError(error);
+        return;
+      }
+  
+      const recipient = getWalletByNetwork(selectedNetwork);
+      const res = await fetchOnRampData({
+        amount,
+        chain: selectedNetwork as any,
+        recipientWalletAddress: recipient,
+      });
+
+      if (res?.data?.id && res?.data?.link) {
+        setPaymentId(res.data.id);
+        const win = openCenteredPopup(res.data.link, "Card Payment", 500, 600);
+        setPopupWindow(win);
+      }
+    } catch (error: any) {
+      console.error("🔥 Failed to fetch card payment link:", error);
+      onPaymentError(error);
     }
-  }, [isCardModalOpen, fetchOnRampData, selectedNetwork]);
+  }, [selectedNetwork, amount]);
 
   useEffect(() => {
-    if (!isCardModalOpen && paymentId) {
-      (async () => {
-        try {
-          const statusResponse = await fetchOnRampPaymentStatus({
-            id: paymentId,
-            amount,
-            chain: selectedNetwork as any,
-            recipientWalletAddress: selectedNetwork === 'sui' ? sui : eth ?? base ?? pol ?? avax ?? arb,
-          });
+    if (!popupWindow || popupWindow.closed || !paymentId) return;
 
-          const paymentStatus = statusResponse?.data?.data?.status;
-          if (paymentStatus === "COMPLETED") {
-            await triggerSavePayment(paymentType, {
-              paymentLinkId,
-              payer: selectedNetwork === 'sui' ? sui : eth ?? base ?? pol ?? avax ?? arb,
-              recipientWalletAddress: selectedNetwork === 'sui' ? sui : eth ?? base ?? pol ?? avax ?? arb,
-              amount: amount.toString(),
-              userUUID: businessid,
-              transactionSignature: statusResponse.data.data.transactionHash,
+    setLoading(true);
+
+    const interval = setInterval(() => {
+      if (popupWindow.closed) {
+        clearInterval(interval);
+        (async () => {
+          try {
+            const recipient = getWalletByNetwork(selectedNetwork);
+            const statusResponse = await fetchOnRampPaymentStatus({
+              id: paymentId,
+              amount,
               chain: selectedNetwork as any,
-              env,
+              recipientWalletAddress: recipient,
             });
-            console.log("✅ Payment completed successfully!");
-            onPaymentComplete();
-          } else {
-            console.log(`⚠️ Payment status: ${paymentStatus}`);
+
+            const paymentStatus = statusResponse?.data?.data?.status;
+            if (paymentStatus === "COMPLETED") {
+              await triggerSavePayment(paymentType, {
+                paymentLinkId,
+                payer: recipient,
+                recipientWalletAddress: recipient,
+                amount: amount.toString(),
+                userUUID: businessid,
+                transactionSignature: statusResponse.data.data.transactionHash,
+                chain: selectedNetwork as any,
+                env,
+              });
+
+              console.log("✅ Payment completed successfully!");
+              onPaymentComplete();
+            } else {
+              console.log(`⚠️ Payment status: ${paymentStatus}`);
+            }
+          } catch (err: any) {
+            console.error("🧨 Error checking payment status:", err);
+            onPaymentError(err);
+          } finally {
+            setLoading(false);
           }
-        } catch (error: any) {
-          console.error("Failed to verify payment status:", error);
-          onPaymentError(error);
-        }
-      })();
-    }
-  }, [isCardModalOpen, paymentId, fetchOnRampPaymentStatus, selectedNetwork]);
+        })();
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [popupWindow, paymentId]);
 
   return (
     <div className="space-y-4 text-center">
@@ -109,7 +148,7 @@ export function CardPayment({
                 <div className="flex items-center gap-2">
                   {network.icon && (
                     <img
-                      src={network.icon || "/placeholder.svg?height=16&width=16"}
+                      src={network.icon}
                       alt={network.name}
                       width={16}
                       height={16}
@@ -123,42 +162,20 @@ export function CardPayment({
         </Select>
       </div>
 
-      <Dialog open={isCardModalOpen} onOpenChange={setIsCardModalOpen}>
-        <DialogTrigger asChild>
-          <Button
-            className={`w-full ${buttonClassName || ""}`}
-            disabled={fetchingPaymentLink || !selectedNetwork}
-          >
-            <CreditCard className="mr-2 h-4 w-4" />
-            {fetchingPaymentLink ? "Loading..." : buttonText}
-          </Button>
-        </DialogTrigger>
+      <Button
+        className={`w-full ${buttonClassName || ""}`}
+        disabled={fetchingPaymentLink || !selectedNetwork}
+        onClick={initiateCardPayment}
+      >
+        <CreditCard className="mr-2 h-4 w-4" />
+        {fetchingPaymentLink || loading ? "Loading..." : buttonText}
+      </Button>
 
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>{dialogTitle}</DialogTitle>
-            <DialogDescription>{dialogDescription}</DialogDescription>
-          </DialogHeader>
-
-          <div className="h-[400px] w-full">
-            {cardPaymentUrl ? (
-              <iframe
-                src={cardPaymentUrl}
-                className="h-full w-full border-0"
-                title="Card payment"
-              />
-            ) : (
-              <div className="h-full w-full flex items-center justify-center border rounded-md">
-                {paymentLinkError ? (
-                  <p className="text-sm text-destructive">{paymentLinkError}</p>
-                ) : (
-                  <p className="text-sm text-muted-foreground">Card payment URL not available</p>
-                )}
-              </div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+      {paymentLinkError && (
+        <p className="text-sm text-destructive mt-2">
+          Error: {paymentLinkError}
+        </p>
+      )}
     </div>
   );
 }

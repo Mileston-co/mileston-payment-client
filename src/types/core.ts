@@ -224,7 +224,7 @@ interface IWalletAddress {
     [key: string]: string;
 }
 
-export interface IGetUser extends IResponse {
+export interface UserData {
     onboarded?: boolean;
     businessName?: string;
     businessAddress?: string;
@@ -235,7 +235,11 @@ export interface IGetUser extends IResponse {
     businessAdminEmail?: string;
     image?: string;
     deleteKeys?: boolean;
-    walletBalance: string;
+    
+}
+export interface IGetUser extends IResponse {
+    userData: UserData
     walletAddress: IWalletAddress;
     isSecretCopied: boolean;
+    walletBalance: string;
 }

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Button } from "../ui/button";
 import { Label } from "../ui/label";
-import { Wallet } from "lucide-react";
+import { LoaderIcon, Wallet } from "lucide-react";
 import { evmType, Token, WalletConnectPaymentProps } from "@/types";
 import { ConnectButton, useCurrentAccount } from "@mysten/dapp-kit";
 import { handlePayWithEVMWalletConnect } from "@/core";
@@ -34,6 +34,8 @@ export function WalletConnectPayment({
   const { triggerSavePayment } = useSavePayment();
   const { businessid } = usePaymentContext()
 
+  const [loading, setLoading] = useState(false);
+
   // Filter tokens based on selected network
   const availableTokens = tokens.filter((token) => token.networkId === selectedNetwork);
 
@@ -46,6 +48,8 @@ export function WalletConnectPayment({
 
   const handlePayWithWallet = async () => {
     try {
+      setLoading(true);
+
       if (selectedNetwork === "sui") {
         const { payerAddress, transactionHash } = await handleSuiPayment({
           recipientWalletAddress: selectedNetwork === 'sui' ? sui : eth ?? base ?? pol ?? avax ?? arb,
@@ -98,6 +102,8 @@ export function WalletConnectPayment({
     } catch (error: any) {
       console.error("Payment failed:", error);
       onPaymentError(error)
+    } finally {
+      setLoading(false)
     }
   };
 
@@ -163,7 +169,12 @@ export function WalletConnectPayment({
       </div>
 
       <div className="flex items-center justify-center">
-        {selectedNetwork === "sui" ? (
+        {loading ? (
+          <Button className="w-full" disabled>
+            <LoaderIcon className="mr-2 h-4 w-4 animate-spin" />
+            Processing...
+          </Button>
+        ) : selectedNetwork === "sui" ? (
           <ConnectButton
             style={{
               marginBottom: "0rem",
@@ -187,6 +198,6 @@ export function WalletConnectPayment({
           </Button>
         )}
       </div>
-    </div>
+    </div >
   );
 }
