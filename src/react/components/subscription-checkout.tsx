@@ -79,7 +79,7 @@ export function SubscriptionCheckout({
             <span className="text-2xl font-bold">
               {plan?.currency || 'USD'} {plan.amount.toFixed(2)}
             </span>
-            <span className="text-sm text-muted-foreground">/{plan.interval.slice(0, -2)}</span>
+            <span className="text-sm text-muted-foreground">/{plan.interval === "daily" ? "day" : plan.interval.slice(0, -2)}</span>
           </div>
         </div>
 
