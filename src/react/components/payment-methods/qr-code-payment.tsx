@@ -6,7 +6,7 @@ import { Button } from "../ui/button"
 import { Label } from "../ui/label"
 import { QrCode, Copy, Check } from "lucide-react"
 import { cn } from "../lib/utils"
-import { QrCodePaymentProps, Token} from "@/types"
+import { QrCodePaymentProps, Token } from "@/types"
 import { useGetPaymentWallet, useVerifyPaymentWithWallet } from "@/react/hooks"
 import { usePaymentContext } from "../PaymentContext"
 import { getSupportedNetworks, getSupportedTokens } from "./utils"
@@ -37,7 +37,8 @@ export function QrCodePayment({
 
   const { businessid } = usePaymentContext()
 
-  const dataUrl = useQRCode(wallet.publicKey)
+  const qrCodeValue = wallet?.publicKey || "placeholder"
+  const dataUrl = useQRCode(qrCodeValue)
 
   const availableTokens = tokens.filter((token) => token.networkId === selectedNetwork)
 
@@ -77,8 +78,8 @@ export function QrCodePayment({
     if (showQrCode && wallet?.publicKey && !paymentVerified) {
       interval = setInterval(async () => {
         try {
-            const payable = (Number(amount) - (Number(amount) * 0.004)).toString()
-            const result = await verify(
+          const payable = (Number(amount) - (Number(amount) * 0.004)).toString()
+          const result = await verify(
             paymentType,
             {
               paymentLinkId,
@@ -92,7 +93,7 @@ export function QrCodePayment({
               token: selectedToken as Token
             },
             selectedToken === 'ETH' || selectedToken === 'POL' || selectedToken === 'AVAX' ? selectedToken : undefined
-            )
+          )
 
           if (result?.statusCode === 200) {
             clearInterval(interval)
@@ -188,7 +189,7 @@ export function QrCodePayment({
           <div className="flex flex-col items-center justify-center py-4">
             <div className="bg-white p-2 rounded-lg mb-2">
               {wallet?.publicKey ? (
-                <img src={dataUrl} alt="Payment QR Code" className="h-48 w-48 object-contain" />
+                <img src={dataUrl ?? ''} alt="Payment QR Code" className="h-48 w-48 object-contain" />
               ) : (
                 <div className="h-48 w-48 bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
                   <QrCode size={120} className="text-primary" />
