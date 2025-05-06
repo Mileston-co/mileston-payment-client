@@ -120,7 +120,7 @@ export function QrCodePayment({
             onPaymentError(err)
           }
         }
-      }, 10000)
+      }, 30000)
     }
 
     return () => {
@@ -228,8 +228,8 @@ export function QrCodePayment({
               </p>
 
               <div className="flex items-center justify-between p-2 bg-muted rounded-md">
-                <code className="text-xs font-mono truncate max-w-[200px] flex items-enter justify-center">
-                  {wallet?.publicKey ? `${wallet.publicKey.slice(0, 6)}...${wallet.publicKey.slice(-4)}` : "No address available"}
+                <code className="text-xs font-mono truncate max-w-[200px] text-center flex items-enter justify-center">
+                  {wallet?.publicKey ? `${wallet.publicKey.slice(0, 13)}...${wallet.publicKey.slice(-4)}` : "No address available"}
                 </code>
                 <Button variant="ghost" size="sm" onClick={copyToClipboard} className="h-8 px-2">
                   {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
