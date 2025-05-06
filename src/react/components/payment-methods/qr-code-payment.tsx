@@ -69,7 +69,7 @@ export function QrCodePayment({
   const [calculatedAmountToSend, setCalculatedAmountToSend] = useState<number | null>(null);
 
   const calculateAmountToSend = async (tokenSymbol: string) => {
-    const amountToSend = parseFloat(amount) + 0.5;
+    const amountToSend = parseFloat(amount) + 0.05;
     if (tokenSymbol === 'USDC' || tokenSymbol === 'USDT') {
       return amountToSend;
     } else {
@@ -111,8 +111,14 @@ export function QrCodePayment({
             onPaymentComplete(selectedNetwork, selectedToken)
           }
         } catch (err: any) {
-          console.error("Verification polling error", err)
-          onPaymentError(err)
+          if (
+            err?.message === 'Payment Verification Failed: {"message":"Still awaiting payment","error":"Bad Request","statusCode":400}'
+          ) {
+            console.log("Awaiting payment...")
+          } else {
+            console.error("Verification polling error", err)
+            onPaymentError(err)
+          }
         }
       }, 10000)
     }
@@ -222,7 +228,7 @@ export function QrCodePayment({
               </p>
 
               <div className="flex items-center justify-between p-2 bg-muted rounded-md">
-                <code className="text-xs font-mono truncate max-w-[200px]">
+                <code className="text-xs font-mono truncate max-w-[200px] flex items-enter justify-center">
                   {wallet?.publicKey ? `${wallet.publicKey.slice(0, 6)}...${wallet.publicKey.slice(-4)}` : "No address available"}
                 </code>
                 <Button variant="ghost" size="sm" onClick={copyToClipboard} className="h-8 px-2">
