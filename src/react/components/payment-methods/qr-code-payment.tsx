@@ -120,7 +120,7 @@ export function QrCodePayment({
             onPaymentError(err)
           }
         }
-      }, 30000)
+      }, 40000)
     }
 
     return () => {
