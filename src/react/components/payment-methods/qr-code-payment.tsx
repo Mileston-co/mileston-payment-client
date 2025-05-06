@@ -9,7 +9,7 @@ import { cn } from "../lib/utils"
 import { QrCodePaymentProps, Token } from "@/types"
 import { useGetPaymentWallet, useVerifyPaymentWithWallet } from "@/react/hooks"
 import { usePaymentContext } from "../PaymentContext"
-import { getSupportedNetworks, getSupportedTokens } from "./utils"
+import { convertUSDToTokenAmount, getSupportedNetworks, getSupportedTokens } from "./utils"
 import { useQRCode } from 'react-qrcode'
 
 export function QrCodePayment({
@@ -66,6 +66,17 @@ export function QrCodePayment({
     setTimeout(() => setCopied(false), 2000)
   }
 
+  const [calculatedAmountToSend, setCalculatedAmountToSend] = useState<number | null>(null);
+
+  const calculateAmountToSend = async (tokenSymbol: string) => {
+    const amountToSend = parseFloat(amount) + 0.5;
+    if (tokenSymbol === 'USDC' || tokenSymbol === 'USDT') {
+      return amountToSend;
+    } else {
+      return await convertUSDToTokenAmount(tokenSymbol, amountToSend);
+    }
+  };
+
   const selectedNetworkObj = networks.find((n) => n.id === selectedNetwork)
   const selectedTokenObj = tokens.find((t) => t.id === selectedToken)
 
@@ -78,14 +89,12 @@ export function QrCodePayment({
     if (showQrCode && wallet?.publicKey && !paymentVerified) {
       interval = setInterval(async () => {
         try {
-          const payable = (Number(amount) - (Number(amount) * 0.004)).toString()
           const result = await verify(
             paymentType,
             {
               paymentLinkId,
               publicKey: wallet.publicKey,
               amount,
-              payable,
               recipientWalletAddress: selectedNetwork === 'sui' ? sui : eth ?? base ?? pol ?? avax ?? arb,
               chain: selectedNetwork as any,
               env,
@@ -112,6 +121,16 @@ export function QrCodePayment({
       if (interval) clearInterval(interval)
     }
   }, [showQrCode, wallet, selectedTokenObj, selectedNetworkObj, paymentVerified, verify])
+
+  useEffect(() => {
+    const updateAmountToSend = async () => {
+      if (selectedTokenObj?.symbol) {
+        const amount = await calculateAmountToSend(selectedTokenObj.symbol);
+        setCalculatedAmountToSend(amount);
+      }
+    };
+    updateAmountToSend();
+  }, [showQrCode, wallet, selectedTokenObj]);
 
   return (
     <div className="space-y-4">
@@ -174,7 +193,7 @@ export function QrCodePayment({
           {/* show QR code */}
           <div className="text-center space-y-2">
             <p className="text-sm font-medium">
-              Send {selectedTokenObj?.symbol} on {selectedNetworkObj?.name} network
+              Send {calculatedAmountToSend} {selectedTokenObj?.symbol} on {selectedNetworkObj?.name} network
             </p>
             <div className="flex items-center justify-center space-x-2">
               {selectedNetworkObj?.icon && (
@@ -204,7 +223,7 @@ export function QrCodePayment({
 
               <div className="flex items-center justify-between p-2 bg-muted rounded-md">
                 <code className="text-xs font-mono truncate max-w-[200px]">
-                  {wallet?.publicKey || "No address available"}
+                  {wallet?.publicKey ? `${wallet.publicKey.slice(0, 6)}...${wallet.publicKey.slice(-4)}` : "No address available"}
                 </code>
                 <Button variant="ghost" size="sm" onClick={copyToClipboard} className="h-8 px-2">
                   {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}

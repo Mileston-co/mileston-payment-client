@@ -1,3 +1,4 @@
+import { getTokenPriceUSD } from "@/core/utils"
 import { Network, TokenMetadata } from "@/types"
 
 export function getSupportedNetworks(params: Record<string, string>): Network[] {
@@ -64,4 +65,18 @@ export function getSupportedTokens(params: Record<string, string>): TokenMetadat
     }
 
     return tokens
+}
+
+
+export async function convertUSDToTokenAmount(tokenSymbol: string, amountInUSD: number): Promise<number | null> {
+    const price = await getTokenPriceUSD(tokenSymbol);
+    
+    if (price === null) {
+        console.error(`💥 Failed to get price for ${tokenSymbol}`);
+        return null;
+    }
+
+    const tokenAmount = amountInUSD / price;
+    console.log(`💸 ${amountInUSD} USD = ${tokenAmount} ${tokenSymbol} at price $${price}`);
+    return tokenAmount;
 }

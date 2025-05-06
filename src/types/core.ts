@@ -175,7 +175,6 @@ export interface PaymentDto {
     paymentLinkId: string;
     publicKey: string;
     amount: string;
-    payable: string;
     recipientWalletAddress: string;
     chain: 'sui' | 'eth' | 'avax' | 'pol' | 'base' | 'arb';
     env: 'test' | 'prod';
