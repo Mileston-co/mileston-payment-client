@@ -37,7 +37,7 @@ export function PaymentLinkCheckout({
   return (
     <Card className={`w-full max-w-md ${className || ""}`}>
       {bannerImage && (
-        <div className="relative h-32 w-full overflow-hidden rounded-t-lg">
+        <div className="relative h-30 w-full overflow-hidden rounded-t-lg">
           <img src={bannerImage || "/placeholder.svg"} alt="Banner" className="object-cover" />
         </div>
       )}
@@ -47,14 +47,14 @@ export function PaymentLinkCheckout({
             <div
               className={cn(
                 "overflow-hidden rounded-full",
-                bannerImage ? "h-20 w-20 border-4 border-background" : "h-16 w-16",
+                bannerImage ? "border-4 border-background" : "h-16 w-16",
               )}
             >
               <img
                 src={businessLogo || "/placeholder.svg?height=64&width=64"}
                 alt={`${businessName} logo`}
-                width={64}
-                height={64}
+                width={60}
+                height={60}
                 className="h-full w-full object-cover"
               />
             </div>
