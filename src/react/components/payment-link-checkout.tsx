@@ -43,23 +43,23 @@ export function PaymentLinkCheckout({
       )}
       <CardHeader className={cn("text-center", bannerImage ? "-mt-10" : "")}>
         <div className="flex flex-col items-center space-y-4">
-          {businessLogo && (
+            {businessLogo && (
             <div
               className={cn(
-                "overflow-hidden rounded-full",
-                bannerImage ? "border-4 border-background" : "h-16 w-16",
+              "overflow-hidden rounded-full h-30 w-30",
+              bannerImage ? "border-4 border-background" : "",
               )}
             >
               <img
-                src={businessLogo || "/placeholder.svg?height=64&width=64"}
-                alt={`${businessName} logo`}
-                width={60}
-                height={60}
-                className="h-full w-full object-cover"
+              src={businessLogo || "/placeholder.svg?height=64&width=64"}
+              alt={`${businessName} logo`}
+              width={64}
+              height={64}
+              className="h-30 w-30 object-cover"
               />
             </div>
-          )}
-          <div>
+            )}
+            <div>
             <CardTitle>{businessName}</CardTitle>
             <CardDescription>{title || "Payment Request"}</CardDescription>
           </div>
