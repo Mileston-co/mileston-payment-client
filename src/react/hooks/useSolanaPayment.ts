@@ -74,7 +74,7 @@ export const useSolanaPayment = (env: env) => {
                 const tokenMint = new PublicKey(getSolanaTokenAddress(env, token));
                 console.log('Token mint address:', tokenMint.toString());
                 const decimals = 6; // Both USDC and USDT use 6 decimals
-                
+
                 const amountInSmallestUnit = Math.round(netAmountInUSD * 10 ** decimals);
                 const feeInSmallestUnit = Math.round(feeInUSD * 10 ** decimals);
                 console.log('Amount in smallest unit:', amountInSmallestUnit);
@@ -83,11 +83,11 @@ export const useSolanaPayment = (env: env) => {
                 // Get or create sender's token account
                 const senderTokenAccount = await getAssociatedTokenAddress(tokenMint, publicKey);
                 console.log('Sender token account:', senderTokenAccount.toString());
-                
+
                 // Get or create recipient's token account
                 const recipientTokenAccount = await getAssociatedTokenAddress(tokenMint, recipientPubkey);
                 console.log('Recipient token account:', recipientTokenAccount.toString());
-                
+
                 // Get or create fee wallet's token account
                 const feeTokenAccount = await getAssociatedTokenAddress(tokenMint, feeWalletAddress);
                 console.log('Fee wallet token account:', feeTokenAccount.toString());
@@ -155,7 +155,7 @@ export const useSolanaPayment = (env: env) => {
             console.log('Sending transaction...');
             const signature = await sendTransaction(transaction, connection);
             console.log('Transaction sent with signature:', signature);
-            
+
             // Wait for confirmation with timeout and blockhash validity check
             console.log('Waiting for transaction confirmation...');
             const confirmation = await connection.confirmTransaction({
@@ -176,8 +176,9 @@ export const useSolanaPayment = (env: env) => {
             };
         } catch (error: any) {
             console.error("Transaction error:", error);
-            disconnect();
             throw error;
+        } finally {
+            disconnect();
         }
     };
 
