@@ -6,7 +6,7 @@ import { Button } from "../ui/button"
 import { Label } from "../ui/label"
 import { QrCode, Copy, Check } from "lucide-react"
 import { cn } from "../lib/utils"
-import { QrCodePaymentProps, Token } from "@/types"
+import { QrCodePaymentProps, Token, WalletType } from "@/types"
 import { useGetPaymentWallet, useVerifyPaymentWithWallet } from "@/react/hooks"
 import { usePaymentContext } from "../PaymentContext"
 import { convertUSDToTokenAmount, getSupportedNetworks, getSupportedTokens } from "./utils"
@@ -52,7 +52,13 @@ export function QrCodePayment({
   const handleGenerateQr = async () => {
     if (selectedNetwork && selectedToken) {
       try {
-        await fetchWallet(selectedNetwork === 'sui' ? 'sui' : 'evm')
+        let walletType: WalletType = 'evm';
+        if (selectedNetwork === 'sui') {
+          walletType = 'sui';
+        } else if (selectedNetwork === 'solana') {
+          walletType = 'solana';
+        }
+        await fetchWallet(walletType)
         setShowQrCode(true)
       } catch (error) {
         console.error("Failed to fetch wallet", error)
