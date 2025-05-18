@@ -2,32 +2,46 @@ import { ReactNode } from "react";
 import { env, PaymentDto, PaymentType } from "./core";
 
 /**
- * Props for the PayButton component
+ * Props for the PayButton component.
+ * This component provides a customizable button for initiating payment processes.
  */
 export interface PayButtonProps {
-    /** Text to display on the button */
+    /** React node to be rendered as the button's content */
     children: React.ReactNode;
-    /** Function to call when payment is complete */
+
+    /** Callback function executed when payment is successfully completed */
     onPaymentComplete: () => void;
-    /** Function to call when payment data is received from opened window before verification.
-     * In case if payment verification failed due to network issues or other issues, 
-     * you can immediately save the data and recall the verification 
-     * endpoints you will find in our doc to verify payments and give value to your users.
+
+    /**
+     * Callback function executed when payment data is received before verification.
+     * Useful for handling cases where payment verification fails due to network issues.
+     * The data can be saved and verification can be retried later using the verification endpoints.
+     * @param data - Object containing wallet address and payment ID
      */
     onPaymentDataRecieved: (data: { walletAddress: string, id: string }) => void;
-    /** Function to call when payment fails */
+
+    /** 
+     * Callback function executed when payment process encounters an error
+     * @param error - The error object containing details about what went wrong
+     */
     onPaymentError: (error: Error) => void;
-    /** Set a theme for the checkout page. Defaults to light or system settings */
-    theme: 'dark' | 'light'
-    /** Custom styles for the button */
+
+    /** Theme setting for the checkout page. Defaults to light or system settings */
+    theme: 'dark' | 'light';
+
+    /** Optional custom styles to apply to the button */
     style?: React.CSSProperties;
-    /** Custom class name for the button */
+
+    /** Optional CSS class name for custom styling */
     className?: string;
-    /** URL for the payment page */
+
+    /** Optional URL for the payment page */
     paymentUrl?: string;
-    /** Id for the payment page */
+
+    /** Optional unique identifier for the payment */
     paymentId?: string;
-    /** Type of payment */
+
+    /** Optional type of payment to process */
     paymentType?: 'payment-link' | 'invoice' | 'recurring-payment';
 }
 
@@ -60,173 +74,276 @@ export interface SubscriptionPlan {
 }
 
 /**
- * Common props for payment method components
+ * Common props shared across different payment method components.
+ * Provides a standardized interface for handling various payment scenarios.
  */
 export interface PaymentMethodProps {
-    onWalletConnectPaymentComplete: (networdId: string, tokenId: string) => void
-    onWalletConnectPaymentError: (error: Error) => void
-    onQrCodePaymentComplete: (networdId: string, tokenId: string) => void
-    onQrCodePaymentError: (error: Error) => void
-    onCardPaymentComplete: () => void
-    onCardPaymentError: (error: Error) => void
-    amount: string
-    env: env
-    paymentLinkId: string
+    /** 
+     * Callback for successful wallet connect payments
+     * @param networkId - ID of the blockchain network used
+     * @param tokenId - ID of the token used for payment
+     */
+    onWalletConnectPaymentComplete: (networkId: string, tokenId: string) => void;
+
+    /** 
+     * Callback for wallet connect payment errors
+     * @param error - Error object with failure details
+     */
+    onWalletConnectPaymentError: (error: Error) => void;
+
+    /** 
+     * Callback for successful QR code payments
+     * @param networkId - ID of the blockchain network used
+     * @param tokenId - ID of the token used for payment
+     */
+    onQrCodePaymentComplete: (networkId: string, tokenId: string) => void;
+
+    /** 
+     * Callback for QR code payment errors
+     * @param error - Error object with failure details
+     */
+    onQrCodePaymentError: (error: Error) => void;
+
+    /** Callback for successful card payments */
+    onCardPaymentComplete: () => void;
+
+    /** 
+     * Callback for card payment errors
+     * @param error - Error object with failure details
+     */
+    onCardPaymentError: (error: Error) => void;
+
+    /** Payment amount as a string */
+    amount: string;
+
+    /** Environment setting (test/prod) */
+    env: env;
+
+    /** Unique identifier for the payment link */
+    paymentLinkId: string;
+
+    /** 
+     * Mapping of blockchain networks to wallet addresses
+     * Keys are network identifiers, values are wallet addresses
+     */
     recipientWalletAddress: {
         [key: string]: string;
-    }
-    /** Custom text for wallet connect button */
-    walletConnectButtonText?: string
-    /** Custom text for QR code button */
-    qrCodeButtonText?: string
-    /** Custom text for card payment button */
-    cardButtonText?: string
-    /** Additional CSS class name for buttons */
-    buttonClassName?: string
-    /** Title for card payment dialog */
-    dialogTitle?: string
-    /** Description for card payment dialog */
-    dialogDescription?: string
+    };
+
+    /** Optional custom text for the wallet connect button */
+    walletConnectButtonText?: string;
+
+    /** Optional custom text for the QR code button */
+    qrCodeButtonText?: string;
+
+    /** Optional custom text for the card payment button */
+    cardButtonText?: string;
+
+    /** Optional CSS class name for styling buttons */
+    buttonClassName?: string;
+
+    /** Optional title for the card payment dialog */
+    dialogTitle?: string;
+
+    /** Optional description for the card payment dialog */
+    dialogDescription?: string;
 }
 
 /**
  * Props for the Subscription Checkout component.
- * Extends the PaymentMethodProps interface to include additional properties
- * specific to subscription checkout functionality.
- *
- * @interface SubscriptionCheckoutProps
- * @extends PaymentMethodProps
- * 
- * @property {string} businessName - The name of the business associated with the subscription.
- * @property {string} [businessLogo] - Optional URL or path to the business logo.
- * @property {SubscriptionPlan} plan - The subscription plan details.
- * @property {string} [className] - Optional CSS class name for custom styling.
- * @property {string} [footerText] - Optional text to display in the footer of the component.
- * @property {string} [cancelText] - Optional text for the cancel button.
+ * Extends PaymentMethodProps with subscription-specific properties.
  */
 export interface SubscriptionCheckoutProps extends PaymentMethodProps {
-    businessName: string
-    businessLogo?: string
-    plan: SubscriptionPlan
-    className?: string
-    footerText?: string
-    cancelText?: string
+    /** Name of the business offering the subscription */
+    businessName: string;
+
+    /** Optional URL to the business logo */
+    businessLogo?: string;
+
+    /** Subscription plan details */
+    plan: SubscriptionPlan;
+
+    /** Optional CSS class name for custom styling */
+    className?: string;
+
+    /** Optional text to display in the component footer */
+    footerText?: string;
+
+    /** Optional text for the cancel button */
+    cancelText?: string;
 }
 
 /**
- * Interface representing the properties for the PaymentOptions component.
- * Extends the `PaymentMethodProps` interface.
- *
- * @property {("wallet" | "qrcode" | "card")} [defaultTab] - Specifies the default tab to be selected.
- *     Can be one of "wallet", "qrcode", or "card".
- * @property {(tab: string) => void} [onTabChange] - Callback function triggered when the tab changes.
- *     Receives the new tab as a string parameter.
+ * Props for the PaymentOptions component.
+ * Extends PaymentMethodProps with tab-related properties.
  */
 export interface PaymentOptionsProps extends PaymentMethodProps {
-    defaultTab?: "wallet" | "qrcode" | "card"
-    onTabChange?: (tab: string) => void
-    paymentType: PaymentType
+    /** Default selected payment tab */
+    defaultTab?: "wallet" | "qrcode" | "card";
+
+    /** 
+     * Callback triggered when payment tab changes
+     * @param tab - The newly selected tab
+     */
+    onTabChange?: (tab: string) => void;
+
+    /** Type of payment being processed */
+    paymentType: PaymentType;
 }
 
 /**
- * Interface representing the properties for the Invoice Checkout component.
- * Extends the `PaymentMethodProps` interface to include additional details
- * specific to invoice checkout functionality.
- *
- * @extends PaymentMethodProps
- *
- * @property {string} businessName - The name of the business associated with the invoice.
- * @property {string} [businessLogo] - Optional URL or path to the business logo.
- * @property {string} invoiceId - Unique identifier for the invoice.
- * @property {number} amount - The total amount to be paid for the invoice.
- * @property {string} [currency] - Optional currency code (e.g., USD, EUR) for the payment.
- * @property {string} [description] - Optional description or details about the invoice.
- * @property {string} [className] - Optional CSS class name for custom styling.
- * @property {string} [footerText] - Optional text to display in the footer of the component.
+ * Props for the Invoice Checkout component.
+ * Extends PaymentMethodProps with invoice-specific properties.
  */
 export interface InvoiceCheckoutProps extends PaymentMethodProps {
-    businessName: string
-    businessLogo?: string
-    invoiceId: string
-    currency?: string
-    description?: string
-    className?: string
-    footerText?: string
+    /** Name of the business issuing the invoice */
+    businessName: string;
+
+    /** Optional URL to the business logo */
+    businessLogo?: string;
+
+    /** Unique identifier for the invoice */
+    invoiceId: string;
+
+    /** Optional currency code (e.g., USD, EUR) */
+    currency?: string;
+
+    /** Optional description of the invoice */
+    description?: string;
+
+    /** Optional CSS class name for custom styling */
+    className?: string;
+
+    /** Optional text to display in the component footer */
+    footerText?: string;
 }
 
+/**
+ * Props for the Payment Link Checkout component.
+ * Extends PaymentMethodProps with payment link specific properties.
+ */
 export interface PaymentLinkCheckoutProps extends PaymentMethodProps {
-    businessName: string
-    businessLogo?: string
-    bannerImage?: string
-    title?: string
-    currency?: string
-    description?: string
-    className?: string
-    footerText?: string
+    /** Name of the business */
+    businessName: string;
+
+    /** Optional URL to the business logo */
+    businessLogo?: string;
+
+    /** Optional URL to a banner image */
+    bannerImage?: string;
+
+    /** Optional title for the payment */
+    title?: string;
+
+    /** Optional currency code (e.g., USD, EUR) */
+    currency?: string;
+
+    /** Optional payment description */
+    description?: string;
+
+    /** Optional CSS class name for custom styling */
+    className?: string;
+
+    /** Optional text to display in the component footer */
+    footerText?: string;
 }
 
 /**
  * Props for the QR Code Payment component.
+ * Defines properties needed for QR code-based payments.
  */
 export interface QrCodePaymentProps {
-    /**
-     * Optional text to display on the payment button.
-     */
+    /** Optional text to display on the payment button */
     buttonText?: string;
 
-    /**
-     * Optional CSS class name for styling the payment button.
-     */
+    /** Optional CSS class name for styling the button */
     buttonClassName?: string;
 
+    /** Type of payment being processed */
     paymentType: PaymentType;
 
-    onPaymentComplete: (networkId: string, tokenId: string) => void;
-
-    onPaymentError: (error: Error) => void;
-
-    recipientWalletAddress: {
-        [key: string]: string;
-    }
-    amount: string,
-    env: env,
-    paymentLinkId: string
-}
-
-/**
- * Props for the WalletConnectPayment component.
- */
-export interface WalletConnectPaymentProps {
-    /**
-     * Callback function triggered when a payment is initiated.
-     * 
-     * @param networkId - The ID of the selected blockchain network.
-     * @param tokenId - The ID of the selected token.
+    /** 
+     * Callback for successful payments
+     * @param networkId - ID of the blockchain network used
+     * @param tokenId - ID of the token used
      */
     onPaymentComplete: (networkId: string, tokenId: string) => void;
 
+    /** 
+     * Callback for payment errors
+     * @param error - Error object with failure details
+     */
     onPaymentError: (error: Error) => void;
 
-    /**
-     * Optional text to display on the payment button.
+    /** 
+     * Mapping of blockchain networks to wallet addresses
+     * Keys are network identifiers, values are wallet addresses
      */
-    buttonText?: string;
-
-    /**
-     * Optional CSS class name to apply to the payment button.
-     */
-    buttonClassName?: string;
-
     recipientWalletAddress: {
         [key: string]: string;
     };
+
+    /** Payment amount */
     amount: string;
+
+    /** Environment setting (test/prod) */
+    env: env;
+
+    /** Unique identifier for the payment link */
     paymentLinkId: string;
-    env: env,
-    paymentType: PaymentType
 }
 
+/**
+ * Props for the WalletConnect Payment component.
+ * Defines properties needed for wallet-based payments.
+ */
+export interface WalletConnectPaymentProps {
+    /** 
+     * Callback for successful payments
+     * @param networkId - ID of the blockchain network used
+     * @param tokenId - ID of the token used
+     */
+    onPaymentComplete: (networkId: string, tokenId: string) => void;
+
+    /** 
+     * Callback for payment errors
+     * @param error - Error object with failure details
+     */
+    onPaymentError: (error: Error) => void;
+
+    /** Optional text to display on the payment button */
+    buttonText?: string;
+
+    /** Optional CSS class name for styling the button */
+    buttonClassName?: string;
+
+    /** 
+     * Mapping of blockchain networks to wallet addresses
+     * Keys are network identifiers, values are wallet addresses
+     */
+    recipientWalletAddress: {
+        [key: string]: string;
+    };
+
+    /** Payment amount */
+    amount: string;
+
+    /** Unique identifier for the payment link */
+    paymentLinkId: string;
+
+    /** Environment setting (test/prod) */
+    env: env;
+
+    /** Type of payment being processed */
+    paymentType: PaymentType;
+}
+
+/**
+ * Response structure for saved payments.
+ * Extends the base Response interface.
+ */
 export interface SavePaymentResponse extends Response {
+    /** Response message indicating save status */
     message: string;
 }
 
@@ -234,37 +351,90 @@ interface Response {
     statusCode: number;
 }
 
+/**
+ * Response structure for payment wallet information.
+ * Extends the base Response interface.
+ */
 export interface GetPaymentWallet extends Response {
+    /** Public key of the wallet */
     publicKey: string;
 }
 
+/**
+ * Response structure for payment verification.
+ * Extends the base Response interface.
+ */
 export interface VerifyPaymentWithWallet extends Response {
+    /** Verification status message */
     message: string;
 }
 
+/**
+ * Props for the Payment Context.
+ * Defines required authentication information.
+ */
 export interface PaymentContextProps {
+    /** API key for authentication */
     apikey: string;
+
+    /** Unique identifier for the business */
     businessid: string;
 }
 
+/**
+ * Props for the Payment Provider component.
+ * Extends PaymentContextProps to include React children.
+ */
 export interface PaymentProviderProps extends PaymentContextProps {
+    /** Child components to be wrapped by the provider */
     children: ReactNode;
 }
 
+/**
+ * Props for the Card Payment component.
+ * Defines properties needed for card-based payments.
+ */
 export interface CardPaymentProps {
-    buttonText?: string
-    buttonClassName?: string
-    dialogTitle?: string
-    dialogDescription?: string
-    amount: string
+    /** Optional text to display on the payment button */
+    buttonText?: string;
+
+    /** Optional CSS class name for styling the button */
+    buttonClassName?: string;
+
+    /** Optional title for the payment dialog */
+    dialogTitle?: string;
+
+    /** Optional description for the payment dialog */
+    dialogDescription?: string;
+
+    /** Payment amount */
+    amount: string;
+
+    /** 
+     * Mapping of blockchain networks to wallet addresses
+     * Keys are network identifiers, values are wallet addresses
+     */
     recipientWalletAddress: {
         [key: string]: string;
-    }
-    onPaymentComplete: () => void
-    onPaymentError: (error: Error) => void
-    paymentType: PaymentType
-    paymentLinkId: string
-    env: env
+    };
+
+    /** Callback for successful payments */
+    onPaymentComplete: () => void;
+
+    /** 
+     * Callback for payment errors
+     * @param error - Error object with failure details
+     */
+    onPaymentError: (error: Error) => void;
+
+    /** Type of payment being processed */
+    paymentType: PaymentType;
+
+    /** Unique identifier for the payment link */
+    paymentLinkId: string;
+
+    /** Environment setting (test/prod) */
+    env: env;
 }
 
 
