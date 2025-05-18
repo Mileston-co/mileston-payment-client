@@ -7,8 +7,10 @@ import { Label } from "../ui/label";
 import { LoaderIcon, Wallet } from "lucide-react";
 import { evmType, Token, WalletConnectPaymentProps } from "@/types";
 import { ConnectButton, useCurrentAccount } from "@mysten/dapp-kit";
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import { useWallet as useSolanaWallet } from "@solana/wallet-adapter-react";
 import { handlePayWithEVMWalletConnect } from "@/core";
-import { useSavePayment, useSuiPayment } from "@/react/hooks";
+import { useSavePayment, useSuiPayment, useSolanaPayment } from "@/react/hooks";
 import { usePaymentContext } from "../PaymentContext";
 import { getSupportedNetworks, getSupportedTokens } from "./utils";
 
@@ -30,7 +32,9 @@ export function WalletConnectPayment({
   const [selectedToken, setSelectedToken] = useState<string>("");
   const [isWalletConnected, setIsWalletConnected] = useState<boolean>(false);
   const currentAccount = useCurrentAccount();
+  const { publicKey: solanaPublicKey } = useSolanaWallet();
   const { handleSuiPayment } = useSuiPayment(env);
+  const { handleSolanaPayment } = useSolanaPayment(env);
   const { triggerSavePayment } = useSavePayment();
   const { businessid } = usePaymentContext()
 
@@ -44,7 +48,7 @@ export function WalletConnectPayment({
     setSelectedToken("");
   };
 
-  const { sui, avax, base, eth, arb, pol } = recipientWalletAddress;
+  const { sui, avax, base, eth, arb, pol, solana } = recipientWalletAddress;
 
   const handlePayWithWallet = async () => {
     try {
@@ -52,21 +56,45 @@ export function WalletConnectPayment({
 
       if (selectedNetwork === "sui") {
         const { payerAddress, transactionHash } = await handleSuiPayment({
-          recipientWalletAddress: selectedNetwork === 'sui' ? sui : eth ?? base ?? pol ?? avax ?? arb,
+          recipientWalletAddress: sui,
           amount,
         });
 
         await triggerSavePayment(paymentType, {
           paymentLinkId,
           payer: payerAddress,
-          recipientWalletAddress: selectedNetwork === 'sui' ? sui : eth ?? base ?? pol ?? avax ?? arb,
+          recipientWalletAddress: sui,
           amount: amount.toString(),
           userUUID: businessid,
           transactionSignature: transactionHash,
           chain: "sui",
           env,
         },
-          selectedToken === 'ETH' || selectedToken === 'POL' || selectedToken === 'AVAX' ? selectedToken : undefined
+          selectedToken === 'ETH' || selectedToken === 'POL' || selectedToken === 'AVAX' || selectedToken === 'SOL' ? selectedToken : undefined
+        );
+
+        if (onPaymentComplete) {
+          onPaymentComplete(selectedNetwork, selectedToken);
+        }
+      } else if (selectedNetwork === "solana") {
+        const { payerAddress, transactionHash, feeHash } = await handleSolanaPayment({
+          recipientWalletAddress: solana,
+          amount,
+          token: selectedToken as 'SOL' | 'USDC' | 'USDT'
+        });
+
+        await triggerSavePayment(paymentType, {
+          paymentLinkId,
+          payer: payerAddress,
+          recipientWalletAddress: solana,
+          amount: amount.toString(),
+          userUUID: businessid,
+          transactionSignature: transactionHash,
+          feeSignature: feeHash,
+          chain: "solana",
+          env,
+        },
+          selectedToken === 'SOL' ? selectedToken : undefined
         );
 
         if (onPaymentComplete) {
@@ -76,7 +104,7 @@ export function WalletConnectPayment({
         const { txHash, feeHash, payerAddress } = await handlePayWithEVMWalletConnect({
           env,
           evm: selectedNetwork as evmType,
-          recipientAddress: selectedNetwork === 'sui' ? sui : eth ?? base ?? pol ?? avax ?? arb,
+          recipientAddress: eth ?? base ?? pol ?? avax ?? arb,
           amount,
           token: selectedToken as Token,
         });
@@ -84,7 +112,7 @@ export function WalletConnectPayment({
         await triggerSavePayment(paymentType, {
           paymentLinkId,
           payer: payerAddress,
-          recipientWalletAddress: selectedNetwork === 'sui' ? sui : eth ?? base ?? pol ?? avax ?? arb,
+          recipientWalletAddress: eth ?? base ?? pol ?? avax ?? arb,
           amount: amount.toString(),
           userUUID: businessid,
           transactionSignature: txHash,
@@ -111,8 +139,11 @@ export function WalletConnectPayment({
     if (selectedNetwork === "sui" && currentAccount?.address) {
       setIsWalletConnected(true);
       handlePayWithWallet();
+    } else if (selectedNetwork === "solana" && solanaPublicKey) {
+      setIsWalletConnected(true);
+      handlePayWithWallet();
     }
-  }, [currentAccount]);
+  }, [currentAccount, solanaPublicKey]);
 
   return (
     <div className="space-y-4">
@@ -187,6 +218,20 @@ export function WalletConnectPayment({
             disabled={isWalletConnected}
             connectText={buttonText}
           />
+        ) : selectedNetwork === "solana" ? (
+          <WalletMultiButton
+            style={{
+              marginBottom: "0rem",
+              backgroundColor: "inherit",
+              color: "inherit",
+              border: "none",
+              padding: "0px",
+              width: "100%"
+            }}
+            disabled={isWalletConnected}
+          >
+            {buttonText}
+          </WalletMultiButton>
         ) : (
           <Button
             className={`w-full ${buttonClassName || ""}`}
@@ -198,6 +243,6 @@ export function WalletConnectPayment({
           </Button>
         )}
       </div>
-    </div >
+    </div>
   );
 }

@@ -1,7 +1,4 @@
 import {
-    FetchInvoiceResponse,
-    FetchPaymentLinkResponse,
-    FetchRecurringPaymentResponse,
     FetchPaymentOptions,
     PaymentType,
     PaymentTypeToResponseMap

@@ -136,15 +136,23 @@ export type env = 'test' | 'prod'
 
 export type evmType = 'avax' | 'pol' | 'base' | 'eth' | 'arb'
 
+// Add chain type that includes all supported chains
+export type Chain = evmType | 'sui' | 'solana';
 
 export interface PayWithWalletConnect {
     evm: evmType;
     env: env;
     amount: string;
     recipientAddress: string;
-    token: 'AVAX' | 'POL' | 'ETH' | 'USDC' | 'USDT'
+    token: Token;
 }
 
+export interface PayWithSolana {
+    env: env;
+    recipientAddress: string;
+    amount: string;
+    token: 'SOL' | 'USDC' | 'USDT';
+}
 
 export interface SavePaymentInput {
     paymentLinkId: string;
@@ -154,7 +162,7 @@ export interface SavePaymentInput {
     userUUID: string;
     transactionSignature: string;
     feeSignature?: string;
-    chain: "avax" | "base" | "pol" | "eth" | "arb" | "sui";
+    chain: Chain;
     env: "test" | "prod";
 }
 
@@ -166,8 +174,7 @@ export interface SavePaymentOptions {
     nativeTokens?: string;
 }
 
-
-export type WalletType = 'sui' | 'evm';
+export type WalletType = 'sui' | 'evm' | 'solana';
 
 export type PaymentVerifyPattern = 'invoice.save' | 'paymentlink.save' | 'recurring.save';
 
@@ -176,7 +183,7 @@ export interface PaymentDto {
     publicKey: string;
     amount: string;
     recipientWalletAddress: string;
-    chain: 'sui' | 'eth' | 'avax' | 'pol' | 'base' | 'arb';
+    chain: Chain;
     env: 'test' | 'prod';
     userUUID: string;
     customerInformation?: string;
@@ -186,7 +193,7 @@ export interface PaymentDto {
 export type GetOnRampDataParams = {
     amount: string;
     recipientWalletAddress: string;
-    chain: "avax" | "base" | "pol" | "eth" | "arb";
+    chain: evmType; // OnRamp only supports EVM chains
 };
 
 export type GetOnRampPaymentStatusParams = GetOnRampDataParams & {
@@ -212,7 +219,7 @@ export interface OnRampPaymentStatusResponse {
 }
 
 
-export type Token = "USDC" | "USDT" | "AVAX" | "ETH" | "POL"
+export type Token = "USDC" | "USDT" | "AVAX" | "ETH" | "POL" | "SOL"
 
 
 interface IResponse {
@@ -241,4 +248,25 @@ export interface IGetUser extends IResponse {
     walletAddress: IWalletAddress;
     isSecretCopied: boolean;
     walletBalance: string;
+}
+
+// Update WalletConnectPaymentProps to include solana
+export interface WalletConnectPaymentProps {
+    onPaymentComplete?: (network: string, token: string) => void;
+    onPaymentError: (error: Error) => void;
+    buttonText?: string;
+    buttonClassName?: string;
+    recipientWalletAddress: {
+        eth?: string;
+        base?: string;
+        avax?: string;
+        pol?: string;
+        arb?: string;
+        sui?: string;
+        solana?: string;
+    };
+    amount: string;
+    paymentLinkId: string;
+    env?: env;
+    paymentType: PaymentType;
 }

@@ -9,6 +9,7 @@ export function getSupportedNetworks(params: Record<string, string>): Network[] 
         pol: { name: "Polygon" },
         arb: { name: "Arbitrum" },
         sui: { name: "Sui" },
+        solana: { name: "Solana" },
     }
 
     return Object.keys(params).map((id) => ({
@@ -44,6 +45,11 @@ export function getSupportedTokens(params: Record<string, string>): TokenMetadat
         ],
         sui: [
             { id: "USDC", name: "USD Coin", symbol: "USDC", networkId: "sui", icon: "" },
+        ],
+        solana: [
+            { id: "SOL", name: "Solana", symbol: "SOL", networkId: "solana", icon: "" },
+            { id: "USDC", name: "USD Coin", symbol: "USDC", networkId: "solana", icon: "" },
+            { id: "USDT", name: "Tether", symbol: "USDT", networkId: "solana", icon: "" },
         ],
     }
 

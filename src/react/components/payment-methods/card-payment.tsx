@@ -44,12 +44,14 @@ export function CardPayment({
   const { triggerSavePayment } = useSavePayment();
   const { businessid } = usePaymentContext();
 
-  const { sui, avax, base, eth, arb, pol } = recipientWalletAddress;
+  const { sui, avax, base, eth, arb, pol, solana } = recipientWalletAddress;
 
   const getWalletByNetwork = (network: string) =>
     network === "sui"
       ? sui
-      : eth ?? base ?? pol ?? avax ?? arb;
+      : network === "solana"
+        ? solana
+        : eth ?? base ?? pol ?? avax ?? arb;
 
   const openCenteredPopup = (url: string, title: string, width: number, height: number) => {
     const left = window.screenX + (window.outerWidth - width) / 2;
@@ -60,8 +62,8 @@ export function CardPayment({
 
   const initiateCardPayment = useCallback(async () => {
     try {
-      if (selectedNetwork === 'sui') {
-        const error = new Error("SUI is not supported for card payments.");
+      if (selectedNetwork === 'sui' || selectedNetwork === 'solana') {
+        const error = new Error(`${selectedNetwork.toUpperCase()} is not supported for card payments.`);
         console.error(error.message);
         onPaymentError(error);
         return;

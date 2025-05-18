@@ -80,7 +80,7 @@ export function QrCodePayment({
   const selectedNetworkObj = networks.find((n) => n.id === selectedNetwork)
   const selectedTokenObj = tokens.find((t) => t.id === selectedToken)
 
-  const { sui, avax, base, eth, arb, pol } = recipientWalletAddress;
+  const { sui, avax, base, eth, arb, pol, solana } = recipientWalletAddress;
 
   // -- POLLING for verification --
   useEffect(() => {
@@ -95,13 +95,17 @@ export function QrCodePayment({
               paymentLinkId,
               publicKey: wallet.publicKey,
               amount,
-              recipientWalletAddress: selectedNetwork === 'sui' ? sui : eth ?? base ?? pol ?? avax ?? arb,
+              recipientWalletAddress: selectedNetwork === 'sui' 
+                ? sui 
+                : selectedNetwork === 'solana'
+                  ? solana
+                  : eth ?? base ?? pol ?? avax ?? arb,
               chain: selectedNetwork as any,
               env,
               userUUID: businessid,
               token: selectedToken as Token
             },
-            selectedToken === 'ETH' || selectedToken === 'POL' || selectedToken === 'AVAX' ? selectedToken : undefined
+            selectedToken === 'ETH' || selectedToken === 'POL' || selectedToken === 'AVAX' || selectedToken === 'SOL' ? selectedToken : undefined
           )
 
           if (result?.statusCode === 200) {

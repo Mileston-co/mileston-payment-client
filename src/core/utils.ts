@@ -125,6 +125,7 @@ const tokenToCoingeckoId: { [symbol: string]: string } = {
     AVAX: 'avalanche-2',
     USDC: 'usd-coin',
     USDT: 'tether',
+    SOL: 'solana',
 };
 
 // Function to fetch token price in USD
@@ -165,4 +166,20 @@ export async function getTokenPriceUSD(tokenSymbol: string): Promise<number | nu
         console.error('🔥 Failed to fetch token prices:', error);
         return null;
     }
+}
+
+// Add Solana token addresses
+export function getSolanaTokenAddress(env: env, token: 'USDC' | 'USDT') {
+    const addresses = {
+        USDC: {
+            prod: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", // Mainnet USDC
+            test: "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU"  // Devnet USDC
+        },
+        USDT: {
+            prod: "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB", // Mainnet USDT
+            test: "DXMf5eKK9RgHhKGQYwDxrR9rBJwrp4rZvmrczuALAuGr"  // Devnet USDT
+        }
+    };
+
+    return addresses[token][env];
 }
