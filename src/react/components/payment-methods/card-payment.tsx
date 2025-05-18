@@ -28,6 +28,7 @@ export function CardPayment({
   paymentType,
   paymentLinkId,
   env,
+  userUUID
 }: CardPaymentProps) {
   const [paymentId, setPaymentId] = useState<string | null>(null);
   const [popupWindow, setPopupWindow] = useState<Window | null>(null);
@@ -112,7 +113,7 @@ export function CardPayment({
                 payer: recipient,
                 recipientWalletAddress: recipient,
                 amount: amount.toString(),
-                userUUID: businessid,
+                userUUID: userUUID ?? businessid,
                 transactionSignature: statusResponse.data.data.transactionHash,
                 chain: selectedNetwork as any,
                 env,

@@ -21,7 +21,8 @@ export function QrCodePayment({
   recipientWalletAddress,
   amount,
   env,
-  paymentLinkId
+  paymentLinkId,
+  userUUID
 }: QrCodePaymentProps) {
   const tokens = getSupportedTokens(recipientWalletAddress)
   const networks = getSupportedNetworks(recipientWalletAddress)
@@ -102,7 +103,7 @@ export function QrCodePayment({
                   : eth ?? base ?? pol ?? avax ?? arb,
               chain: selectedNetwork as any,
               env,
-              userUUID: businessid,
+              userUUID: userUUID ?? businessid,
               token: selectedToken as Token
             },
             selectedToken === 'ETH' || selectedToken === 'POL' || selectedToken === 'AVAX' || selectedToken === 'SOL' ? selectedToken : undefined

@@ -147,6 +147,9 @@ export interface PaymentMethodProps {
 
     /** Optional description for the card payment dialog */
     dialogDescription?: string;
+
+    /** Optional user id of the user */
+    userUUID?: string;
 }
 
 /**
@@ -291,6 +294,9 @@ export interface QrCodePaymentProps {
 
     /** Unique identifier for the payment link */
     paymentLinkId: string;
+
+    /** Optional user id of the user */
+    userUUID?: string;
 }
 
 /**
@@ -336,6 +342,9 @@ export interface WalletConnectPaymentProps {
 
     /** Type of payment being processed */
     paymentType: PaymentType;
+
+    /** Optional user id of the user */
+    userUUID?: string;
 }
 
 /**
@@ -435,6 +444,9 @@ export interface CardPaymentProps {
 
     /** Environment setting (test/prod) */
     env: env;
+
+    /** Optional user id of the user */
+    userUUID?: string;
 }
 
 

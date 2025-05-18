@@ -27,7 +27,8 @@ export function PaymentOptions({
   env,
   recipientWalletAddress,
   paymentType,
-  paymentLinkId
+  paymentLinkId,
+  userUUID
 }: PaymentOptionsProps) {
   const [selectedTab, setSelectedTab] = useState<string>(defaultTab)
 
@@ -67,6 +68,7 @@ export function PaymentOptions({
           buttonText={walletConnectButtonText}
           buttonClassName={buttonClassName}
           paymentType={paymentType}
+          userUUID={userUUID}
         />
       </TabsContent>
 
@@ -82,6 +84,7 @@ export function PaymentOptions({
           amount={amount}
           env={env}
           paymentLinkId={paymentLinkId}
+          userUUID={userUUID}
         />
       </TabsContent>
 
@@ -98,7 +101,8 @@ export function PaymentOptions({
           onPaymentError={(error) => onCardPaymentError(error)}
           paymentLinkId={paymentLinkId}
           env={env} 
-          paymentType={paymentType}          
+          paymentType={paymentType}
+          userUUID={userUUID}          
         />
       </TabsContent>
     </Tabs>

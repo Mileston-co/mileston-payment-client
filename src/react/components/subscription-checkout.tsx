@@ -30,6 +30,7 @@ export function SubscriptionCheckout({
   onCardPaymentError,
   amount,
   recipientWalletAddress,
+  userUUID,
 }: SubscriptionCheckoutProps) {
   const [selectedTab, setSelectedTab] = useState("wallet")
 
@@ -108,6 +109,7 @@ export function SubscriptionCheckout({
           recipientWalletAddress={recipientWalletAddress}
           paymentType={"recurring"}
           paymentLinkId={paymentLinkId}
+          userUUID={userUUID}
         />
       </CardContent>
       <CardFooter className="flex flex-col gap-2 text-sm text-muted-foreground">

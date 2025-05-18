@@ -34,7 +34,8 @@ export function InvoiceCheckout({
   onCardPaymentComplete,
   onCardPaymentError,
   amount,
-  recipientWalletAddress
+  recipientWalletAddress,
+  userUUID,
 }: InvoiceCheckoutProps) {
   const [selectedTab, setSelectedTab] = useState("wallet")
 
@@ -90,6 +91,7 @@ export function InvoiceCheckout({
           recipientWalletAddress={recipientWalletAddress}
           paymentType={"invoice"}
           paymentLinkId={paymentLinkId}
+          userUUID={userUUID}
         />
       </CardContent>
 

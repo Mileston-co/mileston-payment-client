@@ -23,7 +23,8 @@ export function WalletConnectPayment({
   amount,
   paymentLinkId,
   env = "test",
-  paymentType
+  paymentType,
+  userUUID
 }: WalletConnectPaymentProps) {
   const tokens = getSupportedTokens(recipientWalletAddress)
   const networks = getSupportedNetworks(recipientWalletAddress)
@@ -65,7 +66,7 @@ export function WalletConnectPayment({
           payer: payerAddress,
           recipientWalletAddress: sui,
           amount: amount.toString(),
-          userUUID: businessid,
+          userUUID: userUUID ?? businessid,
           transactionSignature: transactionHash,
           chain: "sui",
           env,
@@ -88,7 +89,7 @@ export function WalletConnectPayment({
           payer: payerAddress,
           recipientWalletAddress: solana,
           amount: amount.toString(),
-          userUUID: businessid,
+          userUUID: userUUID ?? businessid,
           transactionSignature: transactionHash,
           feeSignature: feeHash,
           chain: "solana",
@@ -114,7 +115,7 @@ export function WalletConnectPayment({
           payer: payerAddress,
           recipientWalletAddress: eth ?? base ?? pol ?? avax ?? arb,
           amount: amount.toString(),
-          userUUID: businessid,
+          userUUID: userUUID ?? businessid,
           transactionSignature: txHash,
           feeSignature: feeHash,
           chain: selectedNetwork as any,
