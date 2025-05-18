@@ -15,7 +15,7 @@ export function getSupportedNetworks(params: Record<string, string>): Network[] 
     return Object.keys(params).map((id) => ({
         id,
         name: allNetworks[id]?.name || id,
-        icon: `https://assets.parqet.com/logos/crypto/${id.toUpperCase()}?format=png`,
+        icon: `https://assets.parqet.com/logos/crypto/${id === 'solana' ? 'SOL' : id.toUpperCase()}?format=png`,
     }))
 }
 
