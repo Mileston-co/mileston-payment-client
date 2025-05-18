@@ -249,24 +249,3 @@ export interface IGetUser extends IResponse {
     isSecretCopied: boolean;
     walletBalance: string;
 }
-
-// Update WalletConnectPaymentProps to include solana
-export interface WalletConnectPaymentProps {
-    onPaymentComplete?: (network: string, token: string) => void;
-    onPaymentError: (error: Error) => void;
-    buttonText?: string;
-    buttonClassName?: string;
-    recipientWalletAddress: {
-        eth?: string;
-        base?: string;
-        avax?: string;
-        pol?: string;
-        arb?: string;
-        sui?: string;
-        solana?: string;
-    };
-    amount: string;
-    paymentLinkId: string;
-    env?: env;
-    paymentType: PaymentType;
-}
