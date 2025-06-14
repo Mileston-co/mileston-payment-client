@@ -7,7 +7,7 @@ import { Label } from "../ui/label"
 import { QrCode, Copy, Check } from "lucide-react"
 import { cn } from "../lib/utils"
 import { QrCodePaymentProps, Token, WalletType } from "@/types"
-import { useGetPaymentWallet, useVerifyPaymentWithWallet } from "@/react/hooks"
+import { useGetPaymentWallet, useVerifyPaymentWithWallet, useSubWallets } from "@/react/hooks"
 import { usePaymentContext } from "../PaymentContext"
 import { convertUSDToTokenAmount, getSupportedNetworks, getSupportedTokens } from "./utils"
 import { useQRCode } from 'react-qrcode'
@@ -25,8 +25,9 @@ export function QrCodePayment({
   userUUID,
   subWalletUuid
 }: QrCodePaymentProps) {
-  const tokens = getSupportedTokens(recipientWalletAddress)
-  const networks = getSupportedNetworks(recipientWalletAddress)
+  const [effectiveWalletAddress, setEffectiveWalletAddress] = useState(recipientWalletAddress);
+  const tokens = getSupportedTokens(effectiveWalletAddress)
+  const networks = getSupportedNetworks(effectiveWalletAddress)
 
   const [selectedNetwork, setSelectedNetwork] = useState<string>(networks[0]?.id || "")
   const [selectedToken, setSelectedToken] = useState<string>("")
@@ -36,8 +37,31 @@ export function QrCodePayment({
 
   const { fetchWallet, loading: fetchingWallet, wallet } = useGetPaymentWallet()
   const { verify, loading: verifyingPayment } = useVerifyPaymentWithWallet()
+  const { businessid, apikey } = usePaymentContext()
+  const { data: subWalletData, error: subWalletError, loading: fetchingSubWallets, refetch } = useSubWallets({
+    apikey,
+    businessid: userUUID ?? businessid,
+    subWalletUuid: subWalletUuid || '',
+    env: env || 'test'
+  });
 
-  const { businessid } = usePaymentContext()
+  useEffect(() => {
+    const fetchSubWalletData = async () => {
+      if (subWalletUuid) {
+        try {
+          await refetch();
+          if (subWalletData?.data?.address) {
+            setEffectiveWalletAddress(subWalletData.data.address);
+          }
+        } catch (error) {
+          console.error("Failed to fetch subwallet:", error);
+          onPaymentError(new Error("Failed to fetch subwallet data. Payment cannot proceed."));
+        }
+      }
+    };
+
+    fetchSubWalletData();
+  }, [subWalletUuid, subWalletData]);
 
   const qrCodeValue = wallet?.publicKey || "placeholder"
   const dataUrl = useQRCode(qrCodeValue)
@@ -88,7 +112,7 @@ export function QrCodePayment({
   const selectedNetworkObj = networks.find((n) => n.id === selectedNetwork)
   const selectedTokenObj = tokens.find((t) => t.id === selectedToken)
 
-  const { sui, avax, base, eth, arb, pol, solana } = recipientWalletAddress;
+  const { sui, avax, base, eth, arb, pol, solana } = effectiveWalletAddress;
 
   // -- POLLING for verification --
   useEffect(() => {

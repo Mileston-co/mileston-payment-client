@@ -10,7 +10,7 @@ import { ConnectButton, useCurrentAccount } from "@mysten/dapp-kit";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { useWallet as useSolanaWallet } from "@solana/wallet-adapter-react";
 import { handlePayWithEVMWalletConnect } from "@/core";
-import { useSavePayment, useSuiPayment, useSolanaPayment } from "@/react/hooks";
+import { useSavePayment, useSuiPayment, useSolanaPayment, useSubWallets } from "@/react/hooks";
 import { usePaymentContext } from "../PaymentContext";
 import { getSupportedNetworks, getSupportedTokens } from "./utils";
 
@@ -27,8 +27,9 @@ export function WalletConnectPayment({
   userUUID,
   subWalletUuid
 }: WalletConnectPaymentProps) {
-  const tokens = getSupportedTokens(recipientWalletAddress)
-  const networks = getSupportedNetworks(recipientWalletAddress)
+  const [effectiveWalletAddress, setEffectiveWalletAddress] = useState(recipientWalletAddress);
+  const tokens = getSupportedTokens(effectiveWalletAddress)
+  const networks = getSupportedNetworks(effectiveWalletAddress)
 
   const [selectedNetwork, setSelectedNetwork] = useState<string>(networks[0]?.id || "");
   const [selectedToken, setSelectedToken] = useState<string>("");
@@ -38,7 +39,31 @@ export function WalletConnectPayment({
   const { handleSuiPayment } = useSuiPayment(env);
   const { handleSolanaPayment } = useSolanaPayment(env);
   const { triggerSavePayment } = useSavePayment();
-  const { businessid } = usePaymentContext()
+  const { businessid, apikey } = usePaymentContext()
+  const { data: subWalletData, error: subWalletError, loading: fetchingSubWallets, refetch } = useSubWallets({
+    apikey,
+    businessid: userUUID ?? businessid,
+    subWalletUuid: subWalletUuid || '',
+    env: env || 'test'
+  });
+
+  useEffect(() => {
+    const fetchSubWalletData = async () => {
+      if (subWalletUuid) {
+        try {
+          await refetch();
+          if (subWalletData?.data?.address) {
+            setEffectiveWalletAddress(subWalletData.data.address);
+          }
+        } catch (error) {
+          console.error("Failed to fetch subwallet:", error);
+          onPaymentError(new Error("Failed to fetch subwallet data. Payment cannot proceed."));
+        }
+      }
+    };
+
+    fetchSubWalletData();
+  }, [subWalletUuid, subWalletData]);
 
   const [loading, setLoading] = useState(false);
 
@@ -50,7 +75,7 @@ export function WalletConnectPayment({
     setSelectedToken("");
   };
 
-  const { sui, avax, base, eth, arb, pol, solana } = recipientWalletAddress;
+  const { sui, avax, base, eth, arb, pol, solana } = effectiveWalletAddress;
 
   const handlePayWithWallet = async () => {
     try {

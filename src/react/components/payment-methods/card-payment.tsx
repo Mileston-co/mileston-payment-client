@@ -3,6 +3,7 @@ import {
   useGetOnRampData,
   useGetOnRampPaymentStatus,
   useSavePayment,
+  useSubWallets,
 } from "@/react/hooks/index";
 import { Button } from "../ui/button";
 import { CreditCard } from "lucide-react";
@@ -33,8 +34,9 @@ export function CardPayment({
 }: CardPaymentProps) {
   const [paymentId, setPaymentId] = useState<string | null>(null);
   const [popupWindow, setPopupWindow] = useState<Window | null>(null);
+  const [effectiveWalletAddress, setEffectiveWalletAddress] = useState(recipientWalletAddress);
 
-  const networks = getSupportedNetworks(recipientWalletAddress);
+  const networks = getSupportedNetworks(effectiveWalletAddress);
   const [selectedNetwork, setSelectedNetwork] = useState<string>(
     networks[0]?.id || ""
   );
@@ -44,9 +46,33 @@ export function CardPayment({
   const { fetchOnRampData, loading: fetchingPaymentLink, error: paymentLinkError } = useGetOnRampData();
   const { fetchOnRampPaymentStatus } = useGetOnRampPaymentStatus();
   const { triggerSavePayment } = useSavePayment();
-  const { businessid } = usePaymentContext();
+  const { businessid, apikey } = usePaymentContext();
+  const { data: subWalletData, error: subWalletError, loading: fetchingSubWallets, refetch } = useSubWallets({
+    apikey,
+    businessid: userUUID ?? businessid,
+    subWalletUuid: subWalletUuid || '',
+    env: env || 'test'
+  });
 
-  const { sui, avax, base, eth, arb, pol, solana } = recipientWalletAddress;
+  useEffect(() => {
+    const fetchSubWalletData = async () => {
+      if (subWalletUuid) {
+        try {
+          await refetch();
+          if (subWalletData?.data?.address) {
+            setEffectiveWalletAddress(subWalletData.data.address);
+          }
+        } catch (error) {
+          console.error("Failed to fetch subwallet:", error);
+          onPaymentError(new Error("Failed to fetch subwallet data. Payment cannot proceed."));
+        }
+      }
+    };
+
+    fetchSubWalletData();
+  }, [subWalletUuid, subWalletData]);
+
+  const { sui, avax, base, eth, arb, pol, solana } = effectiveWalletAddress;
 
   const getWalletByNetwork = (network: string) =>
     network === "sui"
@@ -106,7 +132,7 @@ export function CardPayment({
               chain: selectedNetwork as any,
               recipientWalletAddress: recipient,
               subWalletUuid,
-              userUUID: userUUID || businessid
+              userUUID: userUUID ?? businessid
             });
 
             const paymentStatus = statusResponse?.data?.data?.status;

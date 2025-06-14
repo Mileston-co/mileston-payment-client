@@ -317,7 +317,7 @@ export interface PaymentDto {
     env: 'test' | 'prod';
     /** User UUID */
     userUUID: string;
-     /** Sub wallet UUID */
+    /** Sub wallet UUID */
     subWalletUuid?: string;
     /** Optional customer information */
     customerInformation?: string;
@@ -434,3 +434,31 @@ export interface IGetUser extends IResponse {
     /** Wallet balance */
     walletBalance: string;
 }
+
+export interface UseSubWalletsParams {
+    apikey: string;
+    businessid: string;
+    subWalletUuid: string;
+    env: 'test' | 'prod';
+}
+
+export interface IWalletBalances {
+    [key: string]: string;
+}
+
+export interface ISubWalletResponse {
+    statusCode: number;
+    message: string;
+    data: {
+        type: 'all';
+        address: IWalletAddress;
+        balance: string;
+        balances: IWalletBalances;
+    };
+}
+
+export interface ISubWalletError {
+    statusCode: number;
+    message: string;
+    error?: string;
+} 
