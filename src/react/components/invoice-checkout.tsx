@@ -36,6 +36,7 @@ export function InvoiceCheckout({
   amount,
   recipientWalletAddress,
   userUUID,
+  subWalletUuid
 }: InvoiceCheckoutProps) {
   const [selectedTab, setSelectedTab] = useState("wallet")
 
@@ -92,6 +93,7 @@ export function InvoiceCheckout({
           paymentType={"invoice"}
           paymentLinkId={paymentLinkId}
           userUUID={userUUID}
+          subWalletUuid={subWalletUuid}
         />
       </CardContent>
 

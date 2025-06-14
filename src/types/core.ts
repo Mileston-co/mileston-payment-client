@@ -124,10 +124,15 @@ export interface FetchRecurringPaymentResponse {
     recurringPaymentData: RecurringPaymentData;
 }
 
+export interface SubWalletDetails {
+    subWalletUuid?: string;
+    subWalletUserName?: string;
+}
+
 /**
  * Structure containing invoice details
  */
-export interface InvoiceData {
+export interface InvoiceData extends SubWalletDetails {
     /** Unique identifier for the invoice */
     invoiceId: string;
     /** Payment amount */
@@ -164,7 +169,7 @@ export interface PaymentLinkData extends Partial<CreatePaymentLinkData> {
 /**
  * Data required to create a new payment link
  */
-export interface CreatePaymentLinkData {
+export interface CreatePaymentLinkData extends SubWalletDetails {
     /** Payment amount */
     amount: string;
     /** Title of the payment */
@@ -184,7 +189,7 @@ export interface CreatePaymentLinkData {
 /**
  * Structure for recurring payment information
  */
-export interface RecurringPaymentData {
+export interface RecurringPaymentData extends SubWalletDetails {
     /** Unique identifier for the recurring payment */
     recurringPaymentId: string;
     /** Payment amount */
@@ -268,6 +273,8 @@ export interface SavePaymentInput {
     chain: Chain;
     /** Environment the payment was processed in */
     env: "test" | "prod";
+    /** Sub wallet UUID */
+    subWalletUuid?: string;
 }
 
 /**
@@ -310,6 +317,8 @@ export interface PaymentDto {
     env: 'test' | 'prod';
     /** User UUID */
     userUUID: string;
+     /** Sub wallet UUID */
+    subWalletUuid?: string;
     /** Optional customer information */
     customerInformation?: string;
     /** Token used for payment */
@@ -331,9 +340,10 @@ export type GetOnRampDataParams = {
 /**
  * Parameters for getting on-ramp payment status
  */
-export type GetOnRampPaymentStatusParams = GetOnRampDataParams & {
+export type GetOnRampPaymentStatusParams = GetOnRampDataParams & Pick<SubWalletDetails, 'subWalletUuid'> & {
     /** Unique identifier for the on-ramp transaction */
     id: string;
+    userUUID?: string;
 };
 
 /**

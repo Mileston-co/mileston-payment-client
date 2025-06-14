@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { usePaymentContext } from "../components/PaymentContext";
 import { getOnRampPaymentStatus } from "@/core/onramp";
-import { OnRampPaymentStatusResponse } from "@/types";
+import { GetOnRampPaymentStatusParams, OnRampPaymentStatusResponse } from "@/types";
 
 export function useGetOnRampPaymentStatus() {
   const [loading, setLoading] = useState(false);
@@ -9,12 +9,7 @@ export function useGetOnRampPaymentStatus() {
   const [data, setData] = useState<OnRampPaymentStatusResponse | null>(null);
   const { apikey, businessid } = usePaymentContext();
 
-  async function fetchOnRampPaymentStatus(params: {
-    id: string;
-    amount: string;
-    chain: "avax" | "base" | "pol" | "eth" | "arb";
-    recipientWalletAddress: string;
-  }) {
+  async function fetchOnRampPaymentStatus(params: GetOnRampPaymentStatusParams) {
     setLoading(true);
     setError(null);
     try {

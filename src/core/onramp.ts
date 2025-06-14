@@ -34,7 +34,7 @@ export async function getOnRampPaymentStatus(
   apikey: string,
   businessid: string
 ): Promise<OnRampPaymentStatusResponse> {
-  const { id, amount, chain, recipientWalletAddress } = params;
+  const { id, amount, chain, recipientWalletAddress, subWalletUuid, userUUID } = params;
 
   const res = await fetch(`${BASE_URL}/onramp-payment-status/${id}`, {
     method: "POST",
@@ -47,6 +47,8 @@ export async function getOnRampPaymentStatus(
       amount,
       chain,
       recipientWalletAddress,
+      subWalletUuid,
+      userUUID
     }),
   });
 

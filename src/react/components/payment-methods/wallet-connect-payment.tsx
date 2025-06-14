@@ -24,7 +24,8 @@ export function WalletConnectPayment({
   paymentLinkId,
   env = "test",
   paymentType,
-  userUUID
+  userUUID,
+  subWalletUuid
 }: WalletConnectPaymentProps) {
   const tokens = getSupportedTokens(recipientWalletAddress)
   const networks = getSupportedNetworks(recipientWalletAddress)
@@ -70,6 +71,7 @@ export function WalletConnectPayment({
           transactionSignature: transactionHash,
           chain: "sui",
           env,
+          subWalletUuid
         },
           selectedToken === 'ETH' || selectedToken === 'POL' || selectedToken === 'AVAX' || selectedToken === 'SOL' ? selectedToken : undefined
         );
@@ -94,6 +96,7 @@ export function WalletConnectPayment({
           feeSignature: feeHash,
           chain: "solana",
           env,
+          subWalletUuid
         },
           selectedToken === 'SOL' ? selectedToken : undefined
         );
@@ -120,6 +123,7 @@ export function WalletConnectPayment({
           feeSignature: feeHash,
           chain: selectedNetwork as any,
           env,
+          subWalletUuid
         },
           selectedToken === 'ETH' || selectedToken === 'POL' || selectedToken === 'AVAX' ? selectedToken : undefined
         );

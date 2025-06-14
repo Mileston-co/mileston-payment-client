@@ -150,6 +150,9 @@ export interface PaymentMethodProps {
 
     /** Optional user id of the user */
     userUUID?: string;
+
+    /** Optional sub wallet uuid */
+    subWalletUuid?: string;
 }
 
 /**
@@ -297,6 +300,9 @@ export interface QrCodePaymentProps {
 
     /** Optional user id of the user */
     userUUID?: string;
+
+    /** Optional sub wallet uuid */
+    subWalletUuid?: string;
 }
 
 /**
@@ -345,6 +351,9 @@ export interface WalletConnectPaymentProps {
 
     /** Optional user id of the user */
     userUUID?: string;
+
+    /** Optional sub wallet uuid */
+    subWalletUuid?: string;
 }
 
 /**
@@ -403,7 +412,7 @@ export interface PaymentProviderProps extends PaymentContextProps {
  * Props for the Card Payment component.
  * Defines properties needed for card-based payments.
  */
-export interface CardPaymentProps {
+export interface CardPaymentProps extends SubWalletProps {
     /** Optional text to display on the payment button */
     buttonText?: string;
 
@@ -447,6 +456,11 @@ export interface CardPaymentProps {
 
     /** Optional user id of the user */
     userUUID?: string;
+}
+
+export interface SubWalletProps {
+    subWalletAddress?: { [key: string]: string; };
+    subWalletUuid?: string;
 }
 
 
