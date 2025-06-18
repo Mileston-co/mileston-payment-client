@@ -31,7 +31,8 @@ export function SubscriptionCheckout({
   amount,
   recipientWalletAddress,
   userUUID,
-  subWalletUuid
+  subWalletUuid,
+  showCardPayment = true
 }: SubscriptionCheckoutProps) {
   const [selectedTab, setSelectedTab] = useState("wallet")
 
@@ -112,6 +113,7 @@ export function SubscriptionCheckout({
           paymentLinkId={paymentLinkId}
           userUUID={userUUID}
           subWalletUuid={subWalletUuid}
+          showCardPayment={showCardPayment}
         />
       </CardContent>
       <CardFooter className="flex flex-col gap-2 text-sm text-muted-foreground">

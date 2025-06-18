@@ -153,6 +153,9 @@ export interface PaymentMethodProps {
 
     /** Optional sub wallet uuid */
     subWalletUuid?: string;
+
+    /** Optional flag to show or hide the card payment option */
+    showCardPayment?: boolean;
 }
 
 /**

@@ -29,7 +29,8 @@ export function PaymentOptions({
   paymentType,
   paymentLinkId,
   userUUID,
-  subWalletUuid
+  subWalletUuid,
+  showCardPayment = true
 }: PaymentOptionsProps) {
   const [selectedTab, setSelectedTab] = useState<string>(defaultTab)
 
@@ -51,10 +52,12 @@ export function PaymentOptions({
           <QrCode className="h-4 w-4" />
           <span className="hidden sm:inline">QR Code</span>
         </TabsTrigger>
-        <TabsTrigger value="card" className="flex gap-2">
-          <CreditCard className="h-4 w-4" />
-          <span className="hidden sm:inline">Card</span>
-        </TabsTrigger>
+        {showCardPayment && (
+          <TabsTrigger value="card" className="flex gap-2">
+            <CreditCard className="h-4 w-4" />
+            <span className="hidden sm:inline">Card</span>
+          </TabsTrigger>
+        )}
       </TabsList>
 
       {/* Wallet Connect Tab */}
