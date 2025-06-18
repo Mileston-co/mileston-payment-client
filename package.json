@@ -1,6 +1,6 @@
 {
   "name": "mileston-payment-client",
-  "version": "0.7.5",
+  "version": "0.7.5-preview.0",
   "description": "A customizable payment components, hooks and functions for Mileston payments",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -13,7 +13,8 @@
     "build": "tsup",
     "dev": "tsup --watch",
     "lint": "eslint \"src/**/*.ts*\"",
-    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
+    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
+    "preview": "npm version prerelease --preid=preview && npm publish --tag preview"
   },
   "keywords": [
     "payment",
