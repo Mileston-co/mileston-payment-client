@@ -9,7 +9,7 @@ export async function getUserDetails(
   if (!apikey) throw new Error("API key is required")
   if (!headerBusinessId) throw new Error("Header business ID is required")
 
-  const url = `${BASE_URL}/user/${pathBusinessId || headerBusinessId}`
+  const url = `preview-checkout-service.mileston.co/user/${pathBusinessId || headerBusinessId}`
 
   try {
     const res = await fetch(url, {

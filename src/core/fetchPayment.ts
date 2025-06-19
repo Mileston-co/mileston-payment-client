@@ -19,7 +19,7 @@ export async function fetchPayment<T extends FetchPaymentOptions>(
 
     if (!pattern) throw new Error('Invalid payment type.');
 
-    const url = `${BASE_URL}/data/${pattern}/${paymentId}`;
+    const url = `preview-checkout-service.mileston.co/data/${pattern}/${paymentId}`;
 
     try {
         const res = await fetch(url, {
