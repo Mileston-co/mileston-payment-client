@@ -114,56 +114,50 @@ export function QrCodePayment({
 
   const { sui, avax, base, eth, arb, pol, solana } = effectiveWalletAddress;
 
-  // -- POLLING for verification --
-  useEffect(() => {
-    let interval: NodeJS.Timeout
-
-    if (showQrCode && wallet?.publicKey && !paymentVerified) {
-      interval = setInterval(async () => {
-        try {
-          const result = await verify(
-            paymentType,
-            {
-              paymentLinkId,
-              publicKey: wallet.publicKey,
-              amount,
-              recipientWalletAddress: selectedNetwork === 'sui' 
-                ? sui 
-                : selectedNetwork === 'solana'
-                  ? solana
-                  : eth ?? base ?? pol ?? avax ?? arb,
-              chain: selectedNetwork as any,
-              env,
-              userUUID: userUUID ?? businessid,
-              token: selectedToken as Token,
-              subWalletUuid: subWalletUuid
-            },
-            selectedToken === 'ETH' || selectedToken === 'POL' || selectedToken === 'AVAX' || selectedToken === 'SOL' ? selectedToken : undefined
-          )
-
-          if (result?.statusCode === 200) {
-            clearInterval(interval)
-            setPaymentVerified(true)
-            console.log("🎉 Payment verified!")
-            onPaymentComplete(selectedNetwork, selectedToken)
-          }
-        } catch (err: any) {
-          if (
-            err?.message === 'Payment Verification Failed: {"message":"Still awaiting payment","error":"Bad Request","statusCode":400}'
-          ) {
-            console.log("Awaiting payment...")
-          } else {
-            console.error("Verification polling error", err)
-            onPaymentError(err)
-          }
-        }
-      }, 40000)
+  // New: Manual verification handler
+  const [verifying, setVerifying] = useState(false);
+  const handleVerifyPayment = async () => {
+    if (!wallet?.publicKey || !selectedTokenObj || !selectedNetworkObj) return;
+    setVerifying(true);
+    try {
+      const result = await verify(
+        paymentType,
+        {
+          paymentLinkId,
+          publicKey: wallet.publicKey,
+          amount,
+          recipientWalletAddress: selectedNetwork === 'sui' 
+            ? sui 
+            : selectedNetwork === 'solana'
+              ? solana
+              : eth ?? base ?? pol ?? avax ?? arb,
+          chain: selectedNetwork as any,
+          env,
+          userUUID: userUUID ?? businessid,
+          token: selectedToken as Token,
+          subWalletUuid: subWalletUuid
+        },
+        selectedToken === 'ETH' || selectedToken === 'POL' || selectedToken === 'AVAX' || selectedToken === 'SOL' ? selectedToken : undefined
+      );
+      if (result?.statusCode === 200) {
+        setPaymentVerified(true);
+        onPaymentComplete(selectedNetwork, selectedToken);
+      } else {
+        onPaymentError(new Error(result?.message || 'Payment not verified'));
+      }
+    } catch (err: any) {
+      if (
+        err?.message === 'Payment Verification Failed: {"message":"Still awaiting payment","error":"Bad Request","statusCode":400}'
+      ) {
+        // Optionally show a message to the user
+        onPaymentError(new Error('Still awaiting payment. Please try again in a moment.'));
+      } else {
+        onPaymentError(err);
+      }
+    } finally {
+      setVerifying(false);
     }
-
-    return () => {
-      if (interval) clearInterval(interval)
-    }
-  }, [showQrCode, wallet, selectedTokenObj, selectedNetworkObj, paymentVerified, verify])
+  };
 
   useEffect(() => {
     const updateAmountToSend = async () => {
@@ -274,6 +268,16 @@ export function QrCodePayment({
               </div>
             </div>
           </div>
+
+          {/* New: Button for user to verify payment */}
+          <Button
+            variant="default"
+            className="w-full mb-2"
+            onClick={handleVerifyPayment}
+            disabled={verifying || paymentVerified}
+          >
+            {verifying ? "Verifying..." : paymentVerified ? "Payment Verified" : "I have made the payment"}
+          </Button>
 
           <Button variant="outline" className="w-full" onClick={() => setShowQrCode(false)}>
             Change payment method

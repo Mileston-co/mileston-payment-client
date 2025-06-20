@@ -12,7 +12,7 @@ export async function getOnRampData(
     chain: params.chain,
   }).toString();
 
-  const res = await fetch(`preview-checkout-service.mileston.co/onramp-data?${query}`, {
+  const res = await fetch(`${BASE_URL}/onramp-data?${query}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -36,7 +36,7 @@ export async function getOnRampPaymentStatus(
 ): Promise<OnRampPaymentStatusResponse> {
   const { id, amount, chain, recipientWalletAddress, subWalletUuid, userUUID } = params;
 
-  const res = await fetch(`preview-checkout-service.mileston.co/onramp-payment-status/${id}`, {
+  const res = await fetch(`${BASE_URL}/onramp-payment-status/${id}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

@@ -43,7 +43,7 @@ export function PaymentOptions({
 
   return (
     <Tabs defaultValue={defaultTab} value={selectedTab} onValueChange={handleTabChange} className="mt-5">
-      <TabsList className="flex w-full justify-between gap-2">
+      <TabsList className={`flex w-full ${showCardPayment ? 'justify-between gap-2': 'items-center justify-center gap-5'}`}>
         <TabsTrigger value="wallet" className="flex gap-2">
           <Wallet className="h-4 w-4" />
           <span className="hidden sm:inline">Wallet Connect</span>

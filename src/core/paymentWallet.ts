@@ -14,7 +14,7 @@ export async function getPaymentWallet(params: {
 }): Promise<GetPaymentWallet> {
   const { apikey, businessid, walletType } = params;
 
-  const res = await fetch(`preview-checkout-service.mileston.co/payment-wallet/${walletType}`, {
+  const res = await fetch(`${BASE_URL}/payment-wallet/${walletType}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -50,7 +50,7 @@ export async function verifyPaymentWithWallet(params: {
 
   const pattern = patternMap[type];
 
-  const url = new URL(`preview-checkout-service.mileston.co/verify-payment/${pattern}`);
+  const url = new URL(`${BASE_URL}/verify-payment/${pattern}`);
   if (nativeTokens) {
     url.searchParams.append('nativeTokens', nativeTokens);
   }
