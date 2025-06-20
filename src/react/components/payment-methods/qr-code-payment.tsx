@@ -114,6 +114,57 @@ export function QrCodePayment({
 
   const { sui, avax, base, eth, arb, pol, solana } = effectiveWalletAddress;
 
+  // -- POLLING for verification --
+  // useEffect(() => {
+  //   let interval: NodeJS.Timeout
+
+  //   if (showQrCode && wallet?.publicKey && !paymentVerified) {
+  //     interval = setInterval(async () => {
+  //       try {
+  //         const result = await verify(
+  //           paymentType,
+  //           {
+  //             paymentLinkId,
+  //             publicKey: wallet.publicKey,
+  //             amount,
+  //             recipientWalletAddress: selectedNetwork === 'sui' 
+  //               ? sui 
+  //               : selectedNetwork === 'solana'
+  //                 ? solana
+  //                 : eth ?? base ?? pol ?? avax ?? arb,
+  //             chain: selectedNetwork as any,
+  //             env,
+  //             userUUID: userUUID ?? businessid,
+  //             token: selectedToken as Token,
+  //             subWalletUuid: subWalletUuid
+  //           },
+  //           selectedToken === 'ETH' || selectedToken === 'POL' || selectedToken === 'AVAX' || selectedToken === 'SOL' ? selectedToken : undefined
+  //         )
+
+  //         if (result?.statusCode === 200) {
+  //           clearInterval(interval)
+  //           setPaymentVerified(true)
+  //           console.log("🎉 Payment verified!")
+  //           onPaymentComplete(selectedNetwork, selectedToken)
+  //         }
+  //       } catch (err: any) {
+  //         if (
+  //           err?.message === 'Payment Verification Failed: {"message":"Still awaiting payment","error":"Bad Request","statusCode":400}'
+  //         ) {
+  //           console.log("Awaiting payment...")
+  //         } else {
+  //           console.error("Verification polling error", err)
+  //           onPaymentError(err)
+  //         }
+  //       }
+  //     }, 40000)
+  //   }
+
+  //   return () => {
+  //     if (interval) clearInterval(interval)
+  //   }
+  // }, [showQrCode, wallet, selectedTokenObj, selectedNetworkObj, paymentVerified, verify])
+
   // New: Manual verification handler
   const [verifying, setVerifying] = useState(false);
   const handleVerifyPayment = async () => {
