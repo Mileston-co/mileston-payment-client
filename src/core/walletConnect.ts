@@ -86,13 +86,19 @@ export async function handlePayWithEVMWalletConnect({
         if (token === 'USDC') {
             tokenAddress = getUsdcEVMContractAddress(env, evm) as `0x${string}`;
             decimals = 6; // USDC typically has 6 decimals
-            netAmountToSendInWei = BigInt(netAmountInUSD * 10 ** decimals);
-            feeInWei = BigInt(feeInUSD * 10 ** decimals);
+            // Fix floating-point precision issues for USDC
+            const netAmountInWei = Math.round(netAmountInUSD * 10 ** decimals);
+            const feeAmountInWei = Math.round(feeInUSD * 10 ** decimals);
+            netAmountToSendInWei = BigInt(netAmountInWei);
+            feeInWei = BigInt(feeAmountInWei);
         } else if (token === 'USDT') {
             tokenAddress = getUsdtEVMContractAddress(env, evm) as `0x${string}`;
             decimals = 6; // USDT typically has 6 decimals
-            netAmountToSendInWei = BigInt(netAmountInUSD * 10 ** decimals);
-            feeInWei = BigInt(feeInUSD * 10 ** decimals);
+            // Fix floating-point precision issues for USDT
+            const netAmountInWei = Math.round(netAmountInUSD * 10 ** decimals);
+            const feeAmountInWei = Math.round(feeInUSD * 10 ** decimals);
+            netAmountToSendInWei = BigInt(netAmountInWei);
+            feeInWei = BigInt(feeAmountInWei);
         } else if (token === 'AVAX' || token === 'POL' || token === 'ETH') {
             // Fetch token price in USD
             const price = await getTokenPriceUSD(token);
@@ -103,8 +109,12 @@ export async function handlePayWithEVMWalletConnect({
             const netAmountInToken = netAmountInUSD / price;
             const feeInToken = feeInUSD / price;
 
-            netAmountToSendInWei = BigInt(Math.floor(netAmountInToken * 10 ** decimals));
-            feeInWei = BigInt(Math.floor(feeInToken * 10 ** decimals));
+            // Fix floating-point precision issues by using a more robust approach
+            const netAmountInWei = Math.round(netAmountInToken * 10 ** decimals);
+            const feeAmountInWei = Math.round(feeInToken * 10 ** decimals);
+            
+            netAmountToSendInWei = BigInt(netAmountInWei);
+            feeInWei = BigInt(feeAmountInWei);
         } else {
             throw new Error(`Unsupported token type: ${token}`);
         }

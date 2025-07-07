@@ -28,10 +28,12 @@ export function WalletConnectPayment({
   subWalletUuid
 }: WalletConnectPaymentProps) {
   const [effectiveWalletAddress, setEffectiveWalletAddress] = useState(recipientWalletAddress);
-  const tokens = getSupportedTokens(effectiveWalletAddress)
-  const networks = getSupportedNetworks(effectiveWalletAddress)
-
-  const [selectedNetwork, setSelectedNetwork] = useState<string>(networks[0]?.id || "");
+  
+  // Make tokens and networks reactive to effectiveWalletAddress changes
+  const tokens = getSupportedTokens(effectiveWalletAddress);
+  const networks = getSupportedNetworks(effectiveWalletAddress);
+  
+  const [selectedNetwork, setSelectedNetwork] = useState<string>("");
   const [selectedToken, setSelectedToken] = useState<string>("");
   const [isWalletConnected, setIsWalletConnected] = useState<boolean>(false);
   const currentAccount = useCurrentAccount();
@@ -64,6 +66,22 @@ export function WalletConnectPayment({
 
     fetchSubWalletData();
   }, [subWalletUuid, subWalletData]);
+
+  // Update effectiveWalletAddress when recipientWalletAddress changes (for filtered wallets)
+  useEffect(() => {
+    if (recipientWalletAddress && Object.keys(recipientWalletAddress).length > 0) {
+      console.log('🔍 [WalletConnectPayment] Updating effectiveWalletAddress from recipientWalletAddress');
+      setEffectiveWalletAddress(recipientWalletAddress);
+    }
+  }, [recipientWalletAddress]);
+
+  // Update selected network when effective wallet address changes
+  useEffect(() => {
+    if (networks.length > 0 && (!selectedNetwork || !networks.find(n => n.id === selectedNetwork))) {
+      setSelectedNetwork(networks[0].id);
+      setSelectedToken(""); // Reset token selection when network changes
+    }
+  }, [networks, selectedNetwork]);
 
   const [loading, setLoading] = useState(false);
 
