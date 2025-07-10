@@ -473,6 +473,7 @@ export type TokenMetadata = {
     symbol: string
     networkId: string
     icon: string
+    testnetUnavailable?: boolean
 }
 
 export type Network = {

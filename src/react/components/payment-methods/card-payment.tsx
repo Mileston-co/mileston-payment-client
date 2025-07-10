@@ -17,7 +17,7 @@ import {
 } from "../ui/select";
 import { Label } from "../ui/label";
 import { usePaymentContext } from "../PaymentContext";
-import { getSupportedNetworks } from "./utils";
+import { getSupportedNetworks, getSupportedTokens } from "./utils";
 
 export function CardPayment({
   buttonText = "Pay with Card",
@@ -37,6 +37,7 @@ export function CardPayment({
   const [effectiveWalletAddress, setEffectiveWalletAddress] = useState(recipientWalletAddress);
 
   const networks = getSupportedNetworks(effectiveWalletAddress);
+  const tokens = getSupportedTokens(effectiveWalletAddress, env);
   const [selectedNetwork, setSelectedNetwork] = useState<string>(
     networks[0]?.id || ""
   );
@@ -80,6 +81,11 @@ export function CardPayment({
       : network === "solana"
         ? solana
         : eth ?? base ?? pol ?? avax ?? arb;
+
+  // Check if a network has tokens that are unavailable on testnet
+  const hasUnavailableTokens = (networkId: string) => {
+    return tokens.some(token => token.networkId === networkId && token.testnetUnavailable);
+  };
 
   const openCenteredPopup = (url: string, title: string, width: number, height: number) => {
     const left = window.screenX + (window.outerWidth - width) / 2;
@@ -177,16 +183,34 @@ export function CardPayment({
           <SelectContent>
             {networks.map((network) => (
               <SelectItem key={network.id} value={network.id}>
-                <div className="flex items-center gap-2">
-                  {network.icon && (
-                    <img
-                      src={network.icon}
-                      alt={network.name}
-                      width={16}
-                      height={16}
-                    />
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center gap-2">
+                    {network.icon && (
+                      <img
+                        src={network.icon}
+                        alt={network.name}
+                        width={16}
+                        height={16}
+                      />
+                    )}
+                    {network.name}
+                  </div>
+                  {hasUnavailableTokens(network.id) && (
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs text-orange-600 bg-orange-100 px-2 py-1 rounded">
+                        Some tokens unavailable
+                      </span>
+                      <a 
+                        href="https://docs.mileston.co/mileston-sdks/testnet-limitations" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-xs text-blue-600 hover:text-blue-800 underline"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        Learn more
+                      </a>
+                    </div>
                   )}
-                  {network.name}
                 </div>
               </SelectItem>
             ))}

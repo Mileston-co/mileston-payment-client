@@ -30,7 +30,7 @@ export function WalletConnectPayment({
   const [effectiveWalletAddress, setEffectiveWalletAddress] = useState(recipientWalletAddress);
   
   // Make tokens and networks reactive to effectiveWalletAddress changes
-  const tokens = getSupportedTokens(effectiveWalletAddress);
+  const tokens = getSupportedTokens(effectiveWalletAddress, env);
   const networks = getSupportedNetworks(effectiveWalletAddress);
   
   const [selectedNetwork, setSelectedNetwork] = useState<string>("");
@@ -229,17 +229,35 @@ export function WalletConnectPayment({
           </SelectTrigger>
           <SelectContent>
             {availableTokens.map((token) => (
-              <SelectItem key={token.id} value={token.id}>
-                <div className="flex items-center gap-2">
-                  {token.icon && (
-                    <img
-                      src={token.icon || "/placeholder.svg?height=16&width=16"}
-                      alt={token.symbol}
-                      width={16}
-                      height={16}
-                    />
+              <SelectItem key={token.id} value={token.id} disabled={token.testnetUnavailable}>
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center gap-2">
+                    {token.icon && (
+                      <img
+                        src={token.icon || "/placeholder.svg?height=16&width=16"}
+                        alt={token.symbol}
+                        width={16}
+                        height={16}
+                      />
+                    )}
+                    {token.symbol} - {token.name}
+                  </div>
+                  {token.testnetUnavailable && (
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs text-orange-600 bg-orange-100 px-2 py-1 rounded">
+                        Testnet Unavailable
+                      </span>
+                      <a 
+                        href="https://docs.mileston.co/mileston-sdks/testnet-limitations" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-xs text-blue-600 hover:text-blue-800 underline"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        Learn more
+                      </a>
+                    </div>
                   )}
-                  {token.symbol} - {token.name}
                 </div>
               </SelectItem>
             ))}

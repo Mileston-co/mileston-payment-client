@@ -19,7 +19,7 @@ export function getSupportedNetworks(params: Record<string, string>): Network[] 
     }))
 }
 
-export function getSupportedTokens(params: Record<string, string>): TokenMetadata[] {
+export function getSupportedTokens(params: Record<string, string>, env?: 'test' | 'prod'): TokenMetadata[] {
     const tokenMap: Record<string, TokenMetadata[]> = {
         eth: [
             { id: "ETH", name: "Ethereum", symbol: "ETH", networkId: "eth", icon: "" },
@@ -53,6 +53,9 @@ export function getSupportedTokens(params: Record<string, string>): TokenMetadat
         ],
     }
 
+    // Define tokens that are not available on testnets
+    const testnetUnavailableTokens = ['USDT', 'AVAX', 'POL', 'ETH'];
+
     const formatIcon = (name: string, symbol: string) =>
         `https://assets.parqet.com/logos/crypto/${symbol}?format=png`
 
@@ -62,9 +65,11 @@ export function getSupportedTokens(params: Record<string, string>): TokenMetadat
         const supported = tokenMap[chainId]
         if (supported) {
             supported.forEach((t) => {
+                const isTestnetUnavailable = env === 'test' && testnetUnavailableTokens.includes(t.symbol);
                 tokens.push({
                     ...t,
                     icon: formatIcon(t.name, t.symbol),
+                    testnetUnavailable: isTestnetUnavailable,
                 })
             })
         }

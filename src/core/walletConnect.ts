@@ -13,18 +13,21 @@ import {
     usdcABI,
     usdtABI,
     getUsdtEVMContractAddress,
-    getTokenPriceUSD
+    getTokenPriceUSD,
+    getEfficientPayProxyContractAddress,
+    efficientPayAbi
 } from './utils';
 
 /**
  * Handles payment transactions using EVM-compatible wallets via WalletConnect.
+ * Uses the EfficientPay smart contract for unified payment processing.
  * Supports both native tokens (e.g., AVAX, POL, ETH) and ERC-20 tokens (e.g., USDC, USDT).
  *
  * @param {PayWithWalletConnect} params - The payment parameters.
  * @param {string} params.env - The environment (e.g., "test", "prod").
  * @param {string} params.evm - The EVM chain identifier (e.g., "eth", "pol").
  * @param {string} params.recipientAddress - The recipient's wallet address.
- * @param {string} params.amount - The amount to send (in token units, not Wei).
+ * @param {string} params.amount - The amount to send (in USD for native tokens, token units for ERC-20).
  * @param {string} params.token - The token type (e.g., "AVAX", "ETH", "USDC", "USDT").
  *
  * @returns {Promise<{ txHash: string; feeHash: string; payerAddress: string }>} - A promise that resolves with the transaction hash and payer's address.
@@ -32,9 +35,10 @@ import {
  * @throws {Error} - Throws an error if the transaction fails or an unsupported token type is provided.
  *
  * @remarks
- * - For native tokens, two transactions are sent: one to the recipient and one for the fee.
- * - For ERC-20 tokens, two token transfer transactions are encoded and sent.
- * - The fee is calculated as 0.04% of the total amount.
+ * - Uses the EfficientPay smart contract's `pay` function for all transactions.
+ * - For native tokens, sends the transaction with value and uses zero address as tokenIn.
+ * - For ERC-20 tokens, sends the transaction without value and uses the token contract address.
+ * - The smart contract handles fee calculation and distribution internally.
  * - The function uses the `viem` library for interacting with the blockchain.
  *
  * @example
@@ -46,7 +50,7 @@ import {
  *     amount: "100",
  *     token: "USDC"
  * });
- * console.log(result.txhash, result.payerAddress);
+ * console.log(result.txHash, result.payerAddress);
  * ```
  */
 
@@ -58,6 +62,15 @@ export async function handlePayWithEVMWalletConnect({
     token,
 }: PayWithWalletConnect): Promise<{ txHash: string; feeHash: string; payerAddress: string }> {
     try {
+        // Validate input parameters
+        if (!env || !evm || !recipientAddress || !amount || !token) {
+            throw new Error("Missing required parameters. Please provide env, evm, recipientAddress, amount, and token.");
+        }
+
+        if (!window.ethereum) {
+            throw new Error("No Ethereum wallet detected. Please install MetaMask or another Web3 wallet.");
+        }
+
         const chain = getChain(env, evm);
         console.log("Creating clients....");
         const publicClient = createPublicClient({
@@ -72,138 +85,172 @@ export async function handlePayWithEVMWalletConnect({
 
         console.log("Requesting connection approval...");
         const [address] = await walletClient.requestAddresses();
-
-        const feePercentage = 0.004;
-        const amountInUSD = Number(amount);
-        const feeInUSD = amountInUSD * feePercentage;
-        const netAmountInUSD = amountInUSD - feeInUSD;
-
-        let tokenAddress: `0x${string}` | null = null;
-        let decimals = 18; // Default to 18 decimals for native tokens
-        let netAmountToSendInWei: bigint;
-        let feeInWei: bigint;
-
-        if (token === 'USDC') {
-            tokenAddress = getUsdcEVMContractAddress(env, evm) as `0x${string}`;
-            decimals = 6; // USDC typically has 6 decimals
-            // Fix floating-point precision issues for USDC
-            const netAmountInWei = Math.round(netAmountInUSD * 10 ** decimals);
-            const feeAmountInWei = Math.round(feeInUSD * 10 ** decimals);
-            netAmountToSendInWei = BigInt(netAmountInWei);
-            feeInWei = BigInt(feeAmountInWei);
-        } else if (token === 'USDT') {
-            tokenAddress = getUsdtEVMContractAddress(env, evm) as `0x${string}`;
-            decimals = 6; // USDT typically has 6 decimals
-            // Fix floating-point precision issues for USDT
-            const netAmountInWei = Math.round(netAmountInUSD * 10 ** decimals);
-            const feeAmountInWei = Math.round(feeInUSD * 10 ** decimals);
-            netAmountToSendInWei = BigInt(netAmountInWei);
-            feeInWei = BigInt(feeAmountInWei);
-        } else if (token === 'AVAX' || token === 'POL' || token === 'ETH') {
-            // Fetch token price in USD
-            const price = await getTokenPriceUSD(token);
-            if (!price) {
-                throw new Error(`Unable to fetch price for token: ${token}`);
-            }
-
-            const netAmountInToken = netAmountInUSD / price;
-            const feeInToken = feeInUSD / price;
-
-            // Fix floating-point precision issues by using a more robust approach
-            const netAmountInWei = Math.round(netAmountInToken * 10 ** decimals);
-            const feeAmountInWei = Math.round(feeInToken * 10 ** decimals);
-            
-            netAmountToSendInWei = BigInt(netAmountInWei);
-            feeInWei = BigInt(feeAmountInWei);
-        } else {
-            throw new Error(`Unsupported token type: ${token}`);
+        
+        if (!address) {
+            throw new Error("Failed to get wallet address. Please ensure your wallet is connected.");
         }
 
-        console.log({ feeInWei, netAmountToSendInWei });
+        // Get the EfficientPay contract address
+        const efficientPayAddress = getEfficientPayProxyContractAddress(env, evm);
+        console.log("EfficientPay contract address:", efficientPayAddress);
 
-        const feeWalletAddress = "0xEC891A037F932493624184970a283ab87398e0A6";
+        // Validate amount
+        const amountNumber = Number(amount);
+        if (isNaN(amountNumber) || amountNumber <= 0) {
+            throw new Error("Invalid amount. Please provide a positive number.");
+        }
 
-        if (token === 'AVAX' || token === 'POL' || token === 'ETH') {
-            console.log("Sending native token transaction...");
+        // Determine token address and amount
+        let tokenInAddress: `0x${string}`;
+        let amountInWei: bigint;
+        let decimals = 18; // Default for native tokens
 
-            const hash1 = await walletClient.sendTransaction({
-                account: address,
-                to: recipientAddress as `0x${string}`,
-                value: netAmountToSendInWei,
-            });
-
-            console.log({ hash1 });
-            console.log("Sending fee transaction...");
-
-            const hash2 = await walletClient.sendTransaction({
-                account: address,
-                to: feeWalletAddress,
-                value: feeInWei,
-            });
-
-            console.log({ hash2 });
-            console.log("Awaiting receipts...");
-
-            const receipt1 = await publicClient.waitForTransactionReceipt({ hash: hash1 });
-            const receipt2 = await publicClient.waitForTransactionReceipt({ hash: hash2 });
-
-            console.log("Receipts received...");
-            return {
-                txHash: receipt1.transactionHash,
-                feeHash: receipt2.transactionHash,
-                payerAddress: address,
-            };
-        } else if (token === 'USDC' || token === 'USDT') {
-            console.log("Encoding data for token transfer...");
-
-            const abi = token === 'USDC' ? usdcABI : usdtABI;
-
-            const data1 = encodeFunctionData({
-                abi,
-                functionName: 'transfer',
-                args: [recipientAddress, netAmountToSendInWei],
-            });
-
-            const data2 = encodeFunctionData({
-                abi,
-                functionName: 'transfer',
-                args: [feeWalletAddress, feeInWei],
-            });
-
-            console.log("Sending first token transaction...");
-
-            const hash1 = await walletClient.sendTransaction({
-                account: address,
-                to: tokenAddress!,
-                data: data1,
-            });
-
-            console.log({ hash1 });
-            console.log("Sending second token transaction...");
-
-            const hash2 = await walletClient.sendTransaction({
-                account: address,
-                to: tokenAddress!,
-                data: data2,
-            });
-
-            console.log({ hash2 });
-            console.log("Awaiting receipts...");
-
-            const receipt1 = await publicClient.waitForTransactionReceipt({ hash: hash1 });
-            const receipt2 = await publicClient.waitForTransactionReceipt({ hash: hash2 });
-
-            console.log("Receipts received...");
-            return {
-                txHash: receipt1.transactionHash,
-                feeHash: receipt2.transactionHash,
-                payerAddress: address,
-            };
+        if (token === 'USDC') {
+            tokenInAddress = getUsdcEVMContractAddress(env, evm) as `0x${string}`;
+            if (!tokenInAddress) {
+                throw new Error(`USDC is not supported on ${evm} chain in ${env} environment.`);
+            }
+            decimals = 6;
+            amountInWei = BigInt(Math.round(amountNumber * 10 ** decimals));
+        } else if (token === 'USDT') {
+            tokenInAddress = getUsdtEVMContractAddress(env, evm) as `0x${string}`;
+            if (!tokenInAddress) {
+                throw new Error(`USDT is not supported on ${evm} chain in ${env} environment.`);
+            }
+            decimals = 6;
+            amountInWei = BigInt(Math.round(amountNumber * 10 ** decimals));
+        } else if (token === 'AVAX' || token === 'POL' || token === 'ETH') {
+            // For native tokens, use the zero address
+            tokenInAddress = '0x0000000000000000000000000000000000000000' as `0x${string}`;
+            
+            // Convert USD amount to token amount
+            const price = await getTokenPriceUSD(token);
+            if (!price) {
+                throw new Error(`Unable to fetch price for ${token}. Please try again later or contact support.`);
+            }
+            
+            const amountInToken = amountNumber / price;
+            amountInWei = BigInt(Math.round(amountInToken * 10 ** decimals));
         } else {
-            throw new Error(`Unsupported token type: ${token}`);
+            throw new Error(`Unsupported token type: ${token}. Supported tokens are: AVAX, POL, ETH, USDC, USDT.`);
+        }
+
+        console.log("Token address:", tokenInAddress);
+        console.log("Amount in Wei:", amountInWei.toString());
+
+        // For ERC-20 tokens, check and approve allowance
+        if (token === 'USDC' || token === 'USDT') {
+            console.log("Checking token allowance...");
+            
+            try {
+                // Get token contract
+                const tokenContract = {
+                    address: tokenInAddress,
+                    abi: token === 'USDC' ? usdcABI : usdtABI,
+                } as const;
+                
+                // Check current allowance
+                const allowance = await publicClient.readContract({
+                    ...tokenContract,
+                    functionName: 'allowance',
+                    args: [address, efficientPayAddress as `0x${string}`],
+                }) as bigint;
+                
+                console.log("Current allowance:", allowance.toString());
+                
+                // If allowance is insufficient, approve
+                if (allowance < amountInWei) {
+                    console.log("Insufficient allowance. Approving tokens...");
+                    
+                    const approveData = encodeFunctionData({
+                        abi: token === 'USDC' ? usdcABI : usdtABI,
+                        functionName: 'approve',
+                        args: [efficientPayAddress as `0x${string}`, amountInWei],
+                    });
+                    
+                    const approveHash = await walletClient.sendTransaction({
+                        account: address,
+                        to: tokenInAddress,
+                        data: approveData,
+                    });
+                    
+                    console.log("Approval transaction hash:", approveHash);
+                    
+                    try {
+                        await publicClient.waitForTransactionReceipt({ hash: approveHash });
+                        console.log("Approval confirmed!");
+                    } catch (approvalError) {
+                        throw new Error(`Token approval failed. Please try again. Error: ${approvalError instanceof Error ? approvalError.message : 'Unknown error'}`);
+                    }
+                } else {
+                    console.log("Sufficient allowance already exists.");
+                }
+            } catch (allowanceError) {
+                throw new Error(`Failed to check token allowance. Please ensure you have sufficient ${token} balance. Error: ${allowanceError instanceof Error ? allowanceError.message : 'Unknown error'}`);
+            }
+        }
+
+        // Encode the pay function call
+        const payData = encodeFunctionData({
+            abi: efficientPayAbi,
+            functionName: 'pay',
+            args: [
+                recipientAddress as `0x${string}`, // merchant
+                tokenInAddress, // tokenIn
+                amountInWei, // amountIn
+                BigInt(0) // minAmountOut (set to 0 for now)
+            ],
+        });
+
+        console.log("Sending payment transaction...");
+
+        try {
+            // Send the transaction
+            const hash = await walletClient.sendTransaction({
+                account: address,
+                to: efficientPayAddress as `0x${string}`,
+                data: payData,
+                value: token === 'AVAX' || token === 'POL' || token === 'ETH' ? amountInWei : BigInt(0), // Send value only for native tokens
+            });
+
+            console.log("Transaction hash:", hash);
+            console.log("Awaiting receipt...");
+
+            try {
+                const receipt = await publicClient.waitForTransactionReceipt({ hash });
+                console.log("Transaction confirmed!");
+                return {
+                    txHash: receipt.transactionHash,
+                    feeHash: receipt.transactionHash, // Same hash since it's a single transaction
+                    payerAddress: address,
+                };
+            } catch (receiptError) {
+                throw new Error(`Transaction was sent but confirmation failed. Hash: ${hash}. Please check your wallet for transaction status. Error: ${receiptError instanceof Error ? receiptError.message : 'Unknown error'}`);
+            }
+        } catch (transactionError) {
+            if (transactionError instanceof Error) {
+                if (transactionError.message.includes('insufficient funds')) {
+                    throw new Error(`Insufficient ${token} balance. Please ensure you have enough tokens to complete the transaction.`);
+                } else if (transactionError.message.includes('user rejected')) {
+                    throw new Error("Transaction was rejected by the user. Please try again.");
+                } else if (transactionError.message.includes('network')) {
+                    throw new Error("Network error. Please check your internet connection and try again.");
+                } else {
+                    throw new Error(`Transaction failed: ${transactionError.message}`);
+                }
+            } else {
+                throw new Error("Transaction failed with an unknown error. Please try again.");
+            }
         }
     } catch (error: any) {
         console.log("An error occurred while performing transaction with EVM wallet connect", error.message);
-        throw error;
+        
+        // If it's already a formatted error, re-throw it
+        if (error.message && !error.message.includes('An error occurred while performing transaction')) {
+            throw error;
+        }
+        
+        // Otherwise, provide a generic error message
+        throw new Error("Payment transaction failed. Please try again or contact support if the issue persists.");
     }
 }
