@@ -41,7 +41,14 @@ export function PaymentLinkCheckout({
     <Card className={`w-full max-w-md ${className || ""}`}>
       {bannerImage && (
         <div className="relative h-30 w-full overflow-hidden rounded-t-lg">
-          <img src={bannerImage || "/placeholder.svg"} alt="Banner" className="object-cover" />
+          <img 
+            src={bannerImage || "/placeholder.svg"} 
+            alt="Banner" 
+            className="object-cover w-full"
+            style={{ height: "180px", width: "100%" }}
+            width={1280}
+            height={180}
+          />
         </div>
       )}
       <CardHeader className={cn("text-center", bannerImage ? "-mt-10" : "")}>

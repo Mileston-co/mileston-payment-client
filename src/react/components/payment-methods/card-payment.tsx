@@ -201,7 +201,7 @@ export function CardPayment({
                         Some tokens unavailable
                       </span>
                       <a 
-                        href="https://docs.mileston.co/mileston-sdks/testnet-limitations" 
+                        href="https://docs.mileston.co/docs/mileston-sdks/testnet-limitations" 
                         target="_blank" 
                         rel="noopener noreferrer"
                         className="text-xs text-blue-600 hover:text-blue-800 underline"
