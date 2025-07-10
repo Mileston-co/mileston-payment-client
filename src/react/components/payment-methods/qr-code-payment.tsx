@@ -74,6 +74,15 @@ export function QrCodePayment({
     setShowQrCode(false)
   }
 
+  const handleTokenChange = (value: string) => {
+    const selectedToken = tokens.find(token => token.id === value);
+    if (selectedToken?.testnetUnavailable) {
+      // Don't allow selection of unavailable tokens
+      return;
+    }
+    setSelectedToken(value);
+  };
+
   const handleGenerateQr = async () => {
     if (selectedNetwork && selectedToken) {
       try {
@@ -197,34 +206,36 @@ export function QrCodePayment({
 
           <div className="space-y-2">
             <Label htmlFor="qr-token">Select Token</Label>
-            <Select value={selectedToken} onValueChange={setSelectedToken} disabled={!selectedNetwork}>
+            <Select value={selectedToken} onValueChange={handleTokenChange} disabled={!selectedNetwork}>
               <SelectTrigger id="qr-token">
                 <SelectValue placeholder="Select token" />
               </SelectTrigger>
               <SelectContent>
-                {availableTokens.map((token) => (
-                  <SelectItem key={token.id} value={token.id} disabled={token.testnetUnavailable}>
+                                {availableTokens.map((token) => (
+                  <SelectItem key={token.id} value={token.id}>
                     <div className="flex items-center justify-between w-full">
                       <div className="flex items-center gap-2">
                         {token.icon && (
                           <img src={token.icon} alt={token.symbol} width={16} height={16} />
                         )}
-                        {token.symbol} - {token.name}
+                        <span className={token.testnetUnavailable ? "text-gray-500" : ""}>
+                          {token.symbol} - {token.name}
+                        </span>
                       </div>
                       {token.testnetUnavailable && (
-                        <div className="flex items-center gap-1">
-                          <span className="text-xs text-orange-600 bg-orange-100 px-2 py-1 rounded">
+                        <div className="flex items-center gap-2 ml-2">
+                          <span className="text-xs text-orange-500 bg-orange-100 px-2 py-1 rounded">
                             Testnet Unavailable
                           </span>
-                                                <a 
-                        href="https://docs.mileston.co/mileston-sdks/testnet-limitations" 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-xs text-blue-600 hover:text-blue-800 underline"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        Learn more
-                      </a>
+                          <a 
+                            href="https://docs.mileston.co/mileston-sdks/testnet-limitations" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-xs text-blue-600 hover:text-blue-800 underline"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            Learn more
+                          </a>
                         </div>
                       )}
                     </div>

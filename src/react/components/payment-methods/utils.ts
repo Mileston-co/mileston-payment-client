@@ -54,7 +54,7 @@ export function getSupportedTokens(params: Record<string, string>, env?: 'test' 
     }
 
     // Define tokens that are not available on testnets
-    const testnetUnavailableTokens = ['USDT', 'AVAX', 'POL', 'ETH'];
+    const testnetUnavailableTokens = ['USDT', 'AVAX', 'POL', 'ETH', 'SOL'];
 
     const formatIcon = (name: string, symbol: string) =>
         `https://assets.parqet.com/logos/crypto/${symbol}?format=png`

@@ -93,6 +93,15 @@ export function WalletConnectPayment({
     setSelectedToken("");
   };
 
+  const handleTokenChange = (value: string) => {
+    const selectedToken = tokens.find(token => token.id === value);
+    if (selectedToken?.testnetUnavailable) {
+      // Don't allow selection of unavailable tokens
+      return;
+    }
+    setSelectedToken(value);
+  };
+
   const { sui, avax, base, eth, arb, pol, solana } = effectiveWalletAddress;
 
   const handlePayWithWallet = async () => {
@@ -223,13 +232,13 @@ export function WalletConnectPayment({
 
       <div className="space-y-2">
         <Label htmlFor="token">Select Token</Label>
-        <Select value={selectedToken} onValueChange={setSelectedToken} disabled={!selectedNetwork}>
+        <Select value={selectedToken} onValueChange={handleTokenChange} disabled={!selectedNetwork}>
           <SelectTrigger id="token">
             <SelectValue placeholder="Select token" />
           </SelectTrigger>
           <SelectContent>
             {availableTokens.map((token) => (
-              <SelectItem key={token.id} value={token.id} disabled={token.testnetUnavailable}>
+              <SelectItem key={token.id} value={token.id}>
                 <div className="flex items-center justify-between w-full">
                   <div className="flex items-center gap-2">
                     {token.icon && (
@@ -240,10 +249,12 @@ export function WalletConnectPayment({
                         height={16}
                       />
                     )}
-                    {token.symbol} - {token.name}
+                    <span className={token.testnetUnavailable ? "text-gray-500" : ""}>
+                      {token.symbol} - {token.name}
+                    </span>
                   </div>
                   {token.testnetUnavailable && (
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-2 ml-2">
                       <span className="text-xs text-orange-600 bg-orange-100 px-2 py-1 rounded">
                         Testnet Unavailable
                       </span>

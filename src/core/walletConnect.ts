@@ -4,6 +4,7 @@ import {
     createWalletClient,
     custom,
     encodeFunctionData,
+    decodeEventLog,
 } from 'viem';
 import 'viem/window';
 import { PayWithWalletConnect } from '../types';
@@ -219,9 +220,44 @@ export async function handlePayWithEVMWalletConnect({
             try {
                 const receipt = await publicClient.waitForTransactionReceipt({ hash });
                 console.log("Transaction confirmed!");
+                
+                // Get the custom txHash from the PaymentProcessed event
+                const contract = {
+                    address: efficientPayAddress as `0x${string}`,
+                    abi: efficientPayAbi,
+                } as const;
+
+                // Decode the PaymentProcessed event from the transaction logs
+                const logs = receipt.logs;
+                let customTxHash: string | null = null;
+
+                for (const log of logs) {
+                    try {
+                        const decodedLog = decodeEventLog({
+                            abi: efficientPayAbi,
+                            data: log.data,
+                            topics: log.topics,
+                        });
+
+                                        if (decodedLog.eventName === 'PaymentProcessed') {
+                    customTxHash = (decodedLog.args as any).txHash as string;
+                    console.log("Custom txHash from event:", customTxHash);
+                    break;
+                }
+                    } catch (error) {
+                        // Skip logs that can't be decoded
+                        continue;
+                    }
+                }
+
+                if (!customTxHash) {
+                    console.warn("Could not find PaymentProcessed event, using blockchain transaction hash");
+                    customTxHash = receipt.transactionHash;
+                }
+                
                 return {
-                    txHash: receipt.transactionHash,
-                    feeHash: receipt.transactionHash, // Same hash since it's a single transaction
+                    txHash: customTxHash, // Use the custom txHash from contract
+                    feeHash: receipt.transactionHash, // Blockchain transaction hash for fee tracking
                     payerAddress: address,
                 };
             } catch (receiptError) {

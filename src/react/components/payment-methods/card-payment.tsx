@@ -196,8 +196,8 @@ export function CardPayment({
                     {network.name}
                   </div>
                   {hasUnavailableTokens(network.id) && (
-                    <div className="flex items-center gap-1">
-                      <span className="text-xs text-orange-600 bg-orange-100 px-2 py-1 rounded">
+                    <div className="flex items-center gap-2 ml-2">
+                      <span className="text-xs text-orange-500 bg-orange-100 px-2 py-1 rounded">
                         Some tokens unavailable
                       </span>
                       <a 
