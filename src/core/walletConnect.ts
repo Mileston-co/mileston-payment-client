@@ -208,7 +208,6 @@ export async function handlePayWithEVMWalletConnect({
                     });
                     // Detect EIP-1559 support
                     const latestBlock = await publicClient.getBlock({ blockTag: 'latest' });
-                    // --- Approval (EIP-1559 logic) ---
                     let approvalGasParams: any = {};
                     if (evm === 'eth') {
                         const targetUsd = 0.60;
@@ -220,11 +219,7 @@ export async function handlePayWithEVMWalletConnect({
                         if (gasPrice) {
                             approvalGasParams = getEIP1559Params(latestBlock, gasPrice);
                         }
-                    } else if ('baseFeePerGas' in latestBlock && latestBlock.baseFeePerGas) {
-                        approvalGasParams = getEIP1559Params(latestBlock);
-                    } else {
-                        approvalGasParams.gasPrice = await publicClient.getGasPrice();
-                    }
+                    } // else: do not set gasPrice for non-eth chains
                     // Send approval transaction with suggested gas
                     const approveTxParams: any = {
                         account: address,
@@ -233,6 +228,12 @@ export async function handlePayWithEVMWalletConnect({
                         gas: approvalGasEstimate,
                         ...approvalGasParams,
                     };
+                    // Remove gasPrice if not eth
+                    if (evm !== 'eth') {
+                        delete approveTxParams.gasPrice;
+                        delete approveTxParams.maxFeePerGas;
+                        delete approveTxParams.maxPriorityFeePerGas;
+                    }
                     const approveHash = await walletClient.sendTransaction(approveTxParams);
                     
                     console.log("Approval transaction hash:", approveHash);
@@ -283,11 +284,7 @@ export async function handlePayWithEVMWalletConnect({
             if (gasPrice) {
                 paymentGasParams = getEIP1559Params(latestBlock, gasPrice);
             }
-        } else if ('baseFeePerGas' in latestBlock && latestBlock.baseFeePerGas) {
-            paymentGasParams = getEIP1559Params(latestBlock);
-        } else {
-            paymentGasParams.gasPrice = await publicClient.getGasPrice();
-        }
+        } // else: do not set gasPrice for non-eth chains
         // Send the payment transaction with suggested gas
         const paymentTxParams: any = {
             account: address,
@@ -297,6 +294,12 @@ export async function handlePayWithEVMWalletConnect({
             gas: paymentGasEstimate,
             ...paymentGasParams,
         };
+        // Remove gasPrice if not eth
+        if (evm !== 'eth') {
+            delete paymentTxParams.gasPrice;
+            delete paymentTxParams.maxFeePerGas;
+            delete paymentTxParams.maxPriorityFeePerGas;
+        }
         const hash = await walletClient.sendTransaction(paymentTxParams);
 
         console.log("Transaction hash:", hash);
