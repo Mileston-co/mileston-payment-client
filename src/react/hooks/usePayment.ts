@@ -3,7 +3,8 @@ import {
   WalletType,
   PaymentDto,
   VerifyPaymentWithWallet,
-  GetPaymentWallet
+  GetPaymentWallet,
+  evmType
 } from "@/types";
 import { useState } from "react";
 import { usePaymentContext } from "../components/PaymentContext";
@@ -15,7 +16,7 @@ export function useGetPaymentWallet() {
 
   const { apikey, businessid } = usePaymentContext();
 
-  async function fetchWallet(walletType: WalletType) {
+  async function fetchWallet(walletType: WalletType, options?: { evmChain?: evmType; env?: 'test' | 'prod'; merchant?: string }) {
     setLoading(true);
     setError(null);
 
@@ -23,7 +24,8 @@ export function useGetPaymentWallet() {
       const res = await getPaymentWallet({
         apikey,
         businessid,
-        walletType
+        walletType,
+        ...(options || {})
       });
       setWallet(res);
       return res;
