@@ -323,6 +323,10 @@ export interface PaymentDto {
     customerInformation?: string;
     /** Token used for payment */
     token: Token;
+    /** EVM chain for QR payment (optional) */
+    evmChain?: 'eth' | 'avax' | 'pol' | 'base' | 'arb';
+    /** Wallet address for QR payment (optional) */
+    walletAddress?: string;
 }
 
 /**

@@ -87,12 +87,20 @@ export function QrCodePayment({
     if (selectedNetwork && selectedToken) {
       try {
         let walletType: WalletType = 'evm';
+        let options: any = {};
         if (selectedNetwork === 'sui') {
           walletType = 'sui';
         } else if (selectedNetwork === 'solana') {
           walletType = 'solana';
+        } else {
+          // EVM: pass evmChain, env, merchant
+          options = {
+            evmChain: selectedNetwork,
+            env,
+            merchant: userUUID ?? businessid
+          };
         }
-        await fetchWallet(walletType)
+        await fetchWallet(walletType, options)
         setShowQrCode(true)
       } catch (error) {
         console.error("Failed to fetch wallet", error)
@@ -129,23 +137,30 @@ export function QrCodePayment({
     if (!wallet?.publicKey || !selectedTokenObj || !selectedNetworkObj) return;
     setVerifying(true);
     try {
+      // For EVM, pass evmChain and walletAddress
+      const isEvm = ["eth", "avax", "pol", "base", "arb"].includes(selectedNetwork);
+      const paymentDto: any = {
+        paymentLinkId,
+        publicKey: wallet.publicKey,
+        amount,
+        recipientWalletAddress: selectedNetwork === 'sui' 
+          ? sui 
+          : selectedNetwork === 'solana'
+            ? solana
+            : eth ?? base ?? pol ?? avax ?? arb,
+        chain: selectedNetwork as any,
+        env,
+        userUUID: userUUID ?? businessid,
+        token: selectedToken as Token,
+        subWalletUuid: subWalletUuid
+      };
+      if (isEvm) {
+        paymentDto.evmChain = selectedNetwork;
+        paymentDto.walletAddress = wallet.publicKey;
+      }
       const result = await verify(
         paymentType,
-        {
-          paymentLinkId,
-          publicKey: wallet.publicKey,
-          amount,
-          recipientWalletAddress: selectedNetwork === 'sui' 
-            ? sui 
-            : selectedNetwork === 'solana'
-              ? solana
-              : eth ?? base ?? pol ?? avax ?? arb,
-          chain: selectedNetwork as any,
-          env,
-          userUUID: userUUID ?? businessid,
-          token: selectedToken as Token,
-          subWalletUuid: subWalletUuid
-        },
+        paymentDto,
         selectedToken === 'ETH' || selectedToken === 'POL' || selectedToken === 'AVAX' || selectedToken === 'SOL' ? selectedToken : undefined
       );
       if (result?.statusCode === 200) {
