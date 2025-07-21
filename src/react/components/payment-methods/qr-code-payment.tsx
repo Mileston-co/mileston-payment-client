@@ -97,7 +97,7 @@ export function QrCodePayment({
           options = {
             evmChain: selectedNetwork,
             env,
-            merchant: userUUID ?? businessid
+            merchant: eth ?? base ?? pol ?? avax ?? arb,
           };
         }
         await fetchWallet(walletType, options)
