@@ -120,7 +120,7 @@ export function QrCodePayment({
   const calculateAmountToSend = async (tokenSymbol: string) => {
     const amountToSend = parseFloat(amount) + 0.05;
     if (tokenSymbol === 'USDC' || tokenSymbol === 'USDT') {
-      return amountToSend;
+      return amountToSend.toFixed(5);
     } else {
       return await convertUSDToTokenAmount(tokenSymbol, amountToSend);
     }
@@ -187,7 +187,7 @@ export function QrCodePayment({
     const updateAmountToSend = async () => {
       if (selectedTokenObj?.symbol) {
         const amount = await calculateAmountToSend(selectedTokenObj.symbol);
-        setCalculatedAmountToSend(amount);
+        setCalculatedAmountToSend(parseFloat(amount as string));
       }
     };
     updateAmountToSend();
