@@ -10,12 +10,9 @@ import { ConnectButton, useCurrentAccount } from "@mysten/dapp-kit";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { useWallet as useSolanaWallet } from "@solana/wallet-adapter-react";
 import { handlePayWithEVMWalletConnect } from "@/core";
-import { handlePayWithEVMWalletConnectEnhanced } from "@/core/enhancedWalletConnect";
 import { useSavePayment, useSuiPayment, useSolanaPayment, useSubWallets } from "@/react/hooks";
 import { usePaymentContext } from "../PaymentContext";
 import { getSupportedNetworks, getSupportedTokens } from "./utils";
-import { WalletSelectionModal } from "../WalletSelectionModal";
-import { detectEVMWallets, DetectedWallet } from "@/core/walletDetection";
 
 export function WalletConnectPayment({
   onPaymentComplete,
@@ -39,11 +36,6 @@ export function WalletConnectPayment({
   const [selectedNetwork, setSelectedNetwork] = useState<string>("");
   const [selectedToken, setSelectedToken] = useState<string>("");
   const [isWalletConnected, setIsWalletConnected] = useState<boolean>(false);
-  const [showWalletModal, setShowWalletModal] = useState<boolean>(false);
-  const [selectedWallet, setSelectedWallet] = useState<DetectedWallet | null>(null);
-  const [walletAddress, setWalletAddress] = useState<string>("");
-  const [walletProvider, setWalletProvider] = useState<any>(null);
-  
   const currentAccount = useCurrentAccount();
   const { publicKey: solanaPublicKey } = useSolanaWallet();
   const { handleSuiPayment } = useSuiPayment(env);
@@ -112,22 +104,6 @@ export function WalletConnectPayment({
 
   const { sui, avax, base, eth, arb, pol, solana } = effectiveWalletAddress;
 
-  const handleWalletSelected = (wallet: DetectedWallet, address: string, provider: any) => {
-    setSelectedWallet(wallet);
-    setWalletAddress(address);
-    setWalletProvider(provider);
-    setShowWalletModal(false);
-    
-    // Automatically proceed with payment after wallet selection
-    handlePayWithWallet();
-  };
-
-  const handleWalletModalError = (error: Error) => {
-    console.error("Wallet selection error:", error);
-    onPaymentError(error);
-    setShowWalletModal(false);
-  };
-
   const handlePayWithWallet = async () => {
     try {
       setLoading(true);
@@ -181,27 +157,12 @@ export function WalletConnectPayment({
           onPaymentComplete(selectedNetwork, selectedToken);
         }
       } else {
-        // Check if we need to show wallet selection modal for EVM chains
-        const detectionResult = detectEVMWallets();
-        const isEVMChain = ['eth', 'avax', 'pol', 'base', 'arb'].includes(selectedNetwork);
-        
-        if (isEVMChain && !detectionResult.connectedWallet && !selectedWallet) {
-          // Show wallet selection modal
-          setShowWalletModal(true);
-          setLoading(false);
-          return;
-        }
-
-        // Use enhanced wallet connect for EVM chains
-        const { txHash, feeHash, payerAddress } = await handlePayWithEVMWalletConnectEnhanced({
+        const { txHash, feeHash, payerAddress } = await handlePayWithEVMWalletConnect({
           env,
           evm: selectedNetwork as evmType,
           recipientAddress: eth ?? base ?? pol ?? avax ?? arb,
           amount,
           token: selectedToken as Token,
-          selectedWallet: selectedWallet || detectionResult.connectedWallet,
-          walletAddress,
-          walletProvider,
         });
 
         await triggerSavePayment(paymentType, {
@@ -225,17 +186,9 @@ export function WalletConnectPayment({
       }
     } catch (error: any) {
       console.error("Payment failed:", error);
-      
-      // Check if this is a wallet selection error
-      if (error.message === 'WALLET_SELECTION_REQUIRED') {
-        setShowWalletModal(true);
-        setLoading(false);
-        return;
-      }
-      
-      onPaymentError(error);
+      onPaymentError(error)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
   };
 
@@ -246,33 +199,30 @@ export function WalletConnectPayment({
     } else if (selectedNetwork === "solana" && solanaPublicKey) {
       setIsWalletConnected(true);
       handlePayWithWallet();
-    } else if (selectedNetwork && selectedToken && !isWalletConnected) {
-      // For EVM chains, check if wallet is already connected
-      const detectionResult = detectEVMWallets();
-      if (detectionResult.connectedWallet) {
-        setIsWalletConnected(true);
-        setSelectedWallet(detectionResult.connectedWallet);
-        setWalletAddress(detectionResult.connectedWallet.address || "");
-        setWalletProvider(detectionResult.connectedWallet.provider);
-        handlePayWithWallet();
-      }
     }
-  }, [selectedNetwork, selectedToken, isWalletConnected, currentAccount, solanaPublicKey]);
+  }, [currentAccount, solanaPublicKey]);
 
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="network">Select Network</Label>
+        <Label htmlFor="network">Select Blockchain</Label>
         <Select value={selectedNetwork} onValueChange={handleNetworkChange}>
-          <SelectTrigger>
-            <SelectValue placeholder="Choose a network" />
+          <SelectTrigger id="network">
+            <SelectValue placeholder="Select network" />
           </SelectTrigger>
           <SelectContent>
             {networks.map((network) => (
               <SelectItem key={network.id} value={network.id}>
-                <div className="flex items-center space-x-2">
-                  <span>{network.icon}</span>
-                  <span>{network.name}</span>
+                <div className="flex items-center gap-2">
+                  {network.icon && (
+                    <img
+                      src={network.icon || "/placeholder.svg?height=16&width=16"}
+                      alt={network.name}
+                      width={16}
+                      height={16}
+                    />
+                  )}
+                  {network.name}
                 </div>
               </SelectItem>
             ))}
@@ -280,69 +230,96 @@ export function WalletConnectPayment({
         </Select>
       </div>
 
-      {selectedNetwork && (
-        <div className="space-y-2">
-          <Label htmlFor="token">Select Token</Label>
-          <Select value={selectedToken} onValueChange={handleTokenChange}>
-            <SelectTrigger>
-              <SelectValue placeholder="Choose a token" />
-            </SelectTrigger>
-            <SelectContent>
-              {availableTokens.map((token) => (
-                <SelectItem 
-                  key={token.id} 
-                  value={token.id}
-                  disabled={token.testnetUnavailable}
-                >
-                  <div className="flex items-center space-x-2">
-                    <span>{token.icon}</span>
-                    <span>{token.name}</span>
-                    {token.testnetUnavailable && (
-                      <span className="text-xs text-gray-500">(Unavailable on testnet)</span>
+      <div className="space-y-2">
+        <Label htmlFor="token">Select Token</Label>
+        <Select value={selectedToken} onValueChange={handleTokenChange} disabled={!selectedNetwork}>
+          <SelectTrigger id="token">
+            <SelectValue placeholder="Select token" />
+          </SelectTrigger>
+          <SelectContent>
+            {availableTokens.map((token) => (
+              <SelectItem key={token.id} value={token.id}>
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center gap-2">
+                    {token.icon && (
+                      <img
+                        src={token.icon || "/placeholder.svg?height=16&width=16"}
+                        alt={token.symbol}
+                        width={16}
+                        height={16}
+                      />
                     )}
+                    <span className={token.testnetUnavailable ? "text-gray-500" : ""}>
+                      {token.symbol} - {token.name}
+                    </span>
                   </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      )}
+                  {token.testnetUnavailable && (
+                    <div className="flex items-center gap-2 ml-2">
+                      <span className="text-xs text-orange-600 bg-orange-100 px-2 py-1 rounded">
+                        Testnet Unavailable
+                      </span>
+                      <a 
+                        href="https://docs.mileston.co/docs/mileston-sdks/testnet-limitations" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-xs text-blue-600 hover:text-blue-800 underline"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        Learn more
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
-      {selectedNetwork && selectedToken && (
-        <div className="space-y-4">
-          {selectedNetwork === "sui" ? (
-            <ConnectButton />
-          ) : selectedNetwork === "solana" ? (
-            <WalletMultiButton />
-          ) : (
-            <Button
-              onClick={handlePayWithWallet}
-              disabled={loading}
-              className={buttonClassName}
-            >
-              {loading ? (
-                <>
-                  <LoaderIcon className="mr-2 h-4 w-4 animate-spin" />
-                  Processing...
-                </>
-              ) : (
-                <>
-                  <Wallet className="mr-2 h-4 w-4" />
-                  {buttonText}
-                </>
-              )}
-            </Button>
-          )}
-        </div>
-      )}
-
-      {/* Wallet Selection Modal */}
-      <WalletSelectionModal
-        isOpen={showWalletModal}
-        onClose={() => setShowWalletModal(false)}
-        onWalletSelected={handleWalletSelected}
-        onError={handleWalletModalError}
-      />
+      <div className="flex items-center justify-center">
+        {loading ? (
+          <Button className="w-full" disabled>
+            <LoaderIcon className="mr-2 h-4 w-4 animate-spin" />
+            Processing...
+          </Button>
+        ) : selectedNetwork === "sui" ? (
+          <ConnectButton
+            style={{
+              marginBottom: "0rem",
+              backgroundColor: "inherit",
+              color: "inherit",
+              border: "none",
+              padding: "0px",
+              width: "100%"
+            }}
+            disabled={isWalletConnected}
+            connectText={buttonText}
+          />
+        ) : selectedNetwork === "solana" ? (
+          <WalletMultiButton
+            style={{
+              marginBottom: "0rem",
+              backgroundColor: "inherit",
+              color: "inherit",
+              border: "none",
+              padding: "0px",
+              width: "100%"
+            }}
+            disabled={isWalletConnected}
+          >
+            {buttonText}
+          </WalletMultiButton>
+        ) : (
+          <Button
+            className={`w-full ${buttonClassName || ""}`}
+            disabled={!selectedNetwork || !selectedToken}
+            onClick={handlePayWithWallet}
+          >
+            <Wallet className="mr-2 h-4 w-4" />
+            {buttonText}
+          </Button>
+        )}
+      </div>
     </div>
   );
 }
