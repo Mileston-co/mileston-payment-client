@@ -1327,36 +1327,35 @@ export function getEfficientPayProxyContractAddress(
     evmType: 'avax' | 'base' | 'pol' | 'eth' | 'arb'
 ): string {
     const addresses = {
-        // Updated based on the provided logs
         avax: {
-            // Avalanche Mainnet: From logs: EfficientPay Proxy deployed at: 0xEcb82f0Cb252682cE13e6a2FBB6dB9711a5B05A2
-            prod: "0xEcb82f0Cb252682cE13e6a2FBB6dB9711a5B05A2", 
-            // Fuji Testnet: From previous README: 0x440150ef4A9D89ED6d72F11608550bD035a8CEE7
-            test: "0x440150ef4A9D89ED6d72F11608550bD035a8CEE7"   
+            // Avalanche C-Chain Mainnet: From DEPLOYMENT_EFFICIENTPAY.md
+            prod: "0xc19E4918F3D8d39069A4C09451626614394a7c31",
+            // Fuji Testnet: From DEPLOYMENT_EFFICIENTPAY.md
+            test: "0xC4C9F6c4aeFa5cBa194F9cb9A187531EFb737d2E"
         },
         base: {
-            // Base Mainnet: From logs: EfficientPay Proxy deployed at: 0xcC2541B7A5d7FC65a43Af221933C298c45Dcc12c
-            prod: "0xcC2541B7A5d7FC65a43Af221933C298c45Dcc12c", 
-            // Base Sepolia Testnet: From previous README: 0x70f1D3693d5B8F066acE537132Cbc61201bb6396
-            test: "0x70f1D3693d5B8F066acE537132Cbc61201bb6396"   
+            // Base Mainnet: From DEPLOYMENT_EFFICIENTPAY.md
+            prod: "0x487aE4DB8b99020CD1fF02B7A21d0C3E416872BD",
+            // Base Sepolia Testnet: From DEPLOYMENT_EFFICIENTPAY.md
+            test: "0xB871D8e08Fcd4db73C05096f1729f4aC225F45FE"
         },
         pol: {
-            // Polygon Mainnet: From logs: EfficientPay Proxy deployed at: 0xdDeC3AfFd91d6639f6F0c903a195019cdF23B1eD
-            prod: "0xdDeC3AfFd91d6639f6F0c903a195019cdF23B1eD", 
-            // Amoy Testnet (Polygon): From previous README: 0x209097757c380b192460f45a31f55c159dC8Ab8C (using this as Amoy)
-            test: "0x209097757c380b192460f45a31f55c159dC8Ab8C"   
+            // Polygon Mainnet: From DEPLOYMENT_EFFICIENTPAY.md
+            prod: "0xe470811A1979cA83196E96B8aCfbD4E4973a49c6",
+            // Amoy Testnet (Polygon): From DEPLOYMENT_EFFICIENTPAY.md
+            test: "0x1388B7EE387e50B3dc76CFfd15aae0db531C78B8"
         },
         arb: {
-            // Arbitrum Mainnet: From logs: EfficientPay Proxy deployed at: 0x2A111508724bb4dBC4093796a9Cf0c67507f6ABC
-            prod: "0x2A111508724bb4dBC4093796a9Cf0c67507f6ABC", 
-            // Arbitrum Sepolia Testnet: From previous README: 0xd8aC2a3D797aCbFd2BA3f3873c07A6B368eAF007
-            test: "0xd8aC2a3D797aCbFd2BA3f3873c07A6B368eAF007"   
+            // Arbitrum One Mainnet: From DEPLOYMENT_EFFICIENTPAY.md
+            prod: "0xEcb82f0Cb252682cE13e6a2FBB6dB9711a5B05A2",
+            // Arbitrum Sepolia Testnet: From DEPLOYMENT_EFFICIENTPAY.md
+            test: "0xf0ED9AaEB87ed1e095FEF54970413d1578690AAF"
         },
         eth: {
-            // Ethereum Mainnet: From logs: EfficientPay Proxy deployed at: 0x411CD8A16C24c6c450B2F502FAEf63B4D70fB1a9
-            prod: "0x411CD8A16C24c6c450B2F502FAEf63B4D70fB1a9", 
-            // Sepolia Testnet (Ethereum): From previous README: 0xA8fED2dD2DBFd9d03047462d1f8f669c1687c296
-            test: "0xA8fED2dD2DBFd9d03047462d1f8f669c1687c296"   
+            // Ethereum Mainnet: From DEPLOYMENT_EFFICIENTPAY.md
+            prod: "0x411CD8A16C24c6c450B2F502FAEf63B4D70fB1a9",
+            // Sepolia Testnet (Ethereum): From DEPLOYMENT_EFFICIENTPAY.md
+            test: "0x75C3a59d69d04009964Af352Da1419DE95572A3D"
         }
     };
 
@@ -1373,7 +1372,7 @@ export const patternMap: Record<PaymentType, string> = {
     recurring: 'recurring.save',
 };
 
-export const BASE_URL = 'https://checkout-service.mileston.co/checkout'
+export const BASE_URL = 'https://preview-checkout-service.mileston.co/checkout'
 
 
 // Price cache
