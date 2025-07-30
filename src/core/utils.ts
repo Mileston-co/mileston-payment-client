@@ -1353,7 +1353,7 @@ export function getEfficientPayProxyContractAddress(
         },
         eth: {
             // Ethereum Mainnet: From DEPLOYMENT_EFFICIENTPAY.md
-            prod: "0x411CD8A16C24c6c450B2F502FAEf63B4D70fB1a9",
+            prod: "0x6904386ac03dF17DF45F3d67f8382dBB72007fc3",
             // Sepolia Testnet (Ethereum): From DEPLOYMENT_EFFICIENTPAY.md
             test: "0x75C3a59d69d04009964Af352Da1419DE95572A3D"
         }
