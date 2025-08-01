@@ -78,8 +78,12 @@ export function WalletConnectPayment({
   // Update selected network when effective wallet address changes
   useEffect(() => {
     if (networks.length > 0 && (!selectedNetwork || !networks.find(n => n.id === selectedNetwork))) {
-      setSelectedNetwork(networks[0].id);
-      setSelectedToken(""); // Reset token selection when network changes
+      // Find the first non-disabled network
+      const firstEnabledNetwork = networks.find(n => !n.disabled);
+      if (firstEnabledNetwork) {
+        setSelectedNetwork(firstEnabledNetwork.id);
+        setSelectedToken(""); // Reset token selection when network changes
+      }
     }
   }, [networks, selectedNetwork]);
 
@@ -89,6 +93,10 @@ export function WalletConnectPayment({
   const availableTokens = tokens.filter((token) => token.networkId === selectedNetwork);
 
   const handleNetworkChange = (value: string) => {
+    const selectedNetworkObj = networks.find(n => n.id === value);
+    if (selectedNetworkObj?.disabled) {
+      return; // Don't allow selection of disabled networks
+    }
     setSelectedNetwork(value);
     setSelectedToken("");
   };
@@ -212,17 +220,28 @@ export function WalletConnectPayment({
           </SelectTrigger>
           <SelectContent>
             {networks.map((network) => (
-              <SelectItem key={network.id} value={network.id}>
-                <div className="flex items-center gap-2">
-                  {network.icon && (
-                    <img
-                      src={network.icon || "/placeholder.svg?height=16&width=16"}
-                      alt={network.name}
-                      width={16}
-                      height={16}
-                    />
+              <SelectItem key={network.id} value={network.id} disabled={network.disabled}>
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center gap-2">
+                    {network.icon && (
+                      <img
+                        src={network.icon || "/placeholder.svg?height=16&width=16"}
+                        alt={network.name}
+                        width={16}
+                        height={16}
+                      />
+                    )}
+                    <span className={network.disabled ? "text-gray-500" : ""}>
+                      {network.name}
+                    </span>
+                  </div>
+                  {network.disabled && network.disabledReason && (
+                    <div className="flex items-center gap-2 ml-2">
+                      <span className="text-xs text-red-600 bg-red-100 px-2 py-1 rounded">
+                        {network.disabledReason}
+                      </span>
+                    </div>
                   )}
-                  {network.name}
                 </div>
               </SelectItem>
             ))}

@@ -182,7 +182,7 @@ export function CardPayment({
           </SelectTrigger>
           <SelectContent>
             {networks.map((network) => (
-              <SelectItem key={network.id} value={network.id}>
+              <SelectItem key={network.id} value={network.id} disabled={network.disabled}>
                 <div className="flex items-center justify-between w-full">
                   <div className="flex items-center gap-2">
                     {network.icon && (
@@ -193,9 +193,18 @@ export function CardPayment({
                         height={16}
                       />
                     )}
-                    {network.name}
+                    <span className={network.disabled ? "text-gray-500" : ""}>
+                      {network.name}
+                    </span>
                   </div>
-                  {hasUnavailableTokens(network.id) && (
+                  {network.disabled && network.disabledReason && (
+                    <div className="flex items-center gap-2 ml-2">
+                      <span className="text-xs text-red-600 bg-red-100 px-2 py-1 rounded">
+                        {network.disabledReason}
+                      </span>
+                    </div>
+                  )}
+                  {!network.disabled && hasUnavailableTokens(network.id) && (
                     <div className="flex items-center gap-2 ml-2">
                       <span className="text-xs text-orange-500 bg-orange-100 px-2 py-1 rounded">
                         Some tokens unavailable

@@ -12,11 +12,16 @@ export function getSupportedNetworks(params: Record<string, string>): Network[] 
         solana: { name: "Solana" },
     }
 
-    return Object.keys(params).map((id) => ({
-        id,
-        name: allNetworks[id]?.name || id,
-        icon: `https://assets.parqet.com/logos/crypto/${id === 'solana' ? 'SOL' : id.toUpperCase()}?format=png`,
-    }))
+    return Object.keys(params).map((id) => {
+        const isDisabled = id === 'eth';
+        return {
+            id,
+            name: allNetworks[id]?.name || id,
+            icon: `https://assets.parqet.com/logos/crypto/${id === 'solana' ? 'SOL' : id.toUpperCase()}?format=png`,
+            disabled: isDisabled,
+            disabledReason: isDisabled ? "Temporarily suspended" : undefined,
+        }
+    })
 }
 
 export function getSupportedTokens(params: Record<string, string>, env?: 'test' | 'prod'): TokenMetadata[] {

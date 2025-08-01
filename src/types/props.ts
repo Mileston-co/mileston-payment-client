@@ -480,4 +480,6 @@ export type Network = {
     id: string
     name: string
     icon: string
+    disabled?: boolean
+    disabledReason?: string
 }
