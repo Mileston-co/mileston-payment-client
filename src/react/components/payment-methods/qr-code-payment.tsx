@@ -127,7 +127,7 @@ export function QrCodePayment({
   const calculateAmountToSend = async (tokenSymbol: string) => {
     const amountToSend = parseFloat(amount) + 0.05;
     if (tokenSymbol === 'USDC' || tokenSymbol === 'USDT') {
-      return amountToSend.toFixed(5);
+      return amountToSend.toFixed(4);
     } else {
       return await convertUSDToTokenAmount(tokenSymbol, amountToSend);
     }
@@ -292,7 +292,7 @@ export function QrCodePayment({
           {/* show QR code */}
           <div className="text-center space-y-2">
             <p className="text-sm font-medium">
-              Send {calculatedAmountToSend} {selectedTokenObj?.symbol} on {selectedNetworkObj?.name} network
+              Send {calculatedAmountToSend?.toFixed(4)} {selectedTokenObj?.symbol} on {selectedNetworkObj?.name} network
             </p>
             <div className="flex items-center justify-center space-x-2">
               {selectedNetworkObj?.icon && (
