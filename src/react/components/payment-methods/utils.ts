@@ -13,7 +13,7 @@ export function getSupportedNetworks(params: Record<string, string>): Network[] 
     }
 
     return Object.keys(params).map((id) => {
-        const isDisabled = id === 'eth';
+        const isDisabled = id === 'id';
         return {
             id,
             name: allNetworks[id]?.name || id,
