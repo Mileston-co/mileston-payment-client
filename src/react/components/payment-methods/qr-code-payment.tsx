@@ -343,7 +343,9 @@ export function QrCodePayment({
           {/* show QR code */}
           <div className="text-center space-y-2">
             <p className="text-sm font-medium">
-              Send {calculatedAmountToSend?.toFixed(4)} {selectedTokenObj?.symbol} on {selectedNetworkObj?.name} network
+              Send {calculatedAmountToSend && calculatedAmountToSend.toString().includes('.') && calculatedAmountToSend.toString().split('.')[1].length > 4 
+                ? calculatedAmountToSend.toFixed(4) 
+                : calculatedAmountToSend} {selectedTokenObj?.symbol} on {selectedNetworkObj?.name} network
             </p>
             <div className="flex items-center justify-center space-x-2">
               {selectedNetworkObj?.icon && (
@@ -357,7 +359,7 @@ export function QrCodePayment({
 
           <div className="flex flex-col items-center justify-center py-4">
             <div className="bg-white p-2 rounded-lg mb-2">
-              {wallet?.publicKey ? (
+              {dataUrl ? (
                 <img src={dataUrl ?? ''} alt="Payment QR Code" className="h-48 w-48 object-contain" />
               ) : (
                 <div className="h-48 w-48 bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
