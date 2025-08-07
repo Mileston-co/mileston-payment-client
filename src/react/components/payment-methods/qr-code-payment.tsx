@@ -68,6 +68,32 @@ export function QrCodePayment({
     fetchSubWalletData();
   }, [subWalletUuid, subWalletData]);
 
+  // Track when qrPaymentWallets changes from undefined to defined
+  useEffect(() => {
+    if (
+      qrPaymentWallets &&
+      Array.isArray(qrPaymentWallets) &&
+      qrPaymentWallets.length > 0 &&
+      !localWallet &&
+      showQrCode &&
+      selectedNetwork &&
+      env
+    ) {
+      const existingQrWallet = qrPaymentWallets.find(
+        qw => qw.chain === selectedNetwork && qw.env === env
+      );
+      if (existingQrWallet) {
+        setLocalWallet({
+          publicKey: existingQrWallet.address,
+          qrCodeId: existingQrWallet.qrCodeId,
+          type: selectedNetwork,
+          address: existingQrWallet.address,
+          balance: "0"
+        });
+      }
+    }
+  }, [qrPaymentWallets, showQrCode, selectedNetwork, env, localWallet]);
+
   const qrCodeValue = (localWallet || wallet)?.publicKey || "placeholder"
   const dataUrl = useQRCode(qrCodeValue)
 

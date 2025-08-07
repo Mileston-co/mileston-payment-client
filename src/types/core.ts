@@ -1,3 +1,5 @@
+import { QrPaymentWalletData } from "./props";
+
 /**
  * Options for configuring the MilestonPayButton component.
  */
@@ -423,6 +425,8 @@ export interface UserData {
     image?: string;
     /** Whether to delete associated keys */
     deleteKeys?: boolean;
+    /** QR payment wallets */
+    qrPaymentWallets?: QrPaymentWalletData[];
 }
 
 /**
@@ -437,6 +441,8 @@ export interface IGetUser extends IResponse {
     isSecretCopied: boolean;
     /** Wallet balance */
     walletBalance: string;
+    /** QR payment wallets */
+    qrPaymentWallets?: QrPaymentWalletData[];
 }
 
 export interface UseSubWalletsParams {
