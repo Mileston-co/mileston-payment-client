@@ -180,6 +180,9 @@ export interface SubscriptionCheckoutProps extends PaymentMethodProps {
 
     /** Optional text for the cancel button */
     cancelText?: string;
+
+    /** Optional QR payment wallets data from microservice */
+    qrPaymentWallets?: QrPaymentWalletData[];
 }
 
 /**
@@ -198,6 +201,9 @@ export interface PaymentOptionsProps extends PaymentMethodProps {
 
     /** Type of payment being processed */
     paymentType: PaymentType;
+
+    /** Optional QR payment wallets data from microservice */
+    qrPaymentWallets?: QrPaymentWalletData[];
 }
 
 /**
@@ -225,6 +231,9 @@ export interface InvoiceCheckoutProps extends PaymentMethodProps {
 
     /** Optional text to display in the component footer */
     footerText?: string;
+
+    /** Optional QR payment wallets data from microservice */
+    qrPaymentWallets?: QrPaymentWalletData[];
 }
 
 /**
@@ -255,12 +264,23 @@ export interface PaymentLinkCheckoutProps extends PaymentMethodProps {
 
     /** Optional text to display in the component footer */
     footerText?: string;
+
+    /** Optional QR payment wallets data from microservice */
+    qrPaymentWallets?: QrPaymentWalletData[];
 }
 
 /**
  * Props for the QR Code Payment component.
  * Defines properties needed for QR code-based payments.
  */
+export interface QrPaymentWalletData {
+    chain: string;
+    env: 'test' | 'prod';
+    address: string;
+    qrCodeId?: string;
+    createdAt: Date;
+}
+
 export interface QrCodePaymentProps {
     /** Optional text to display on the payment button */
     buttonText?: string;
@@ -306,6 +326,9 @@ export interface QrCodePaymentProps {
 
     /** Optional sub wallet uuid */
     subWalletUuid?: string;
+
+    /** Optional QR payment wallets data from microservice */
+    qrPaymentWallets?: QrPaymentWalletData[];
 }
 
 /**

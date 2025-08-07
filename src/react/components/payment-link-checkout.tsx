@@ -33,7 +33,8 @@ export function PaymentLinkCheckout({
   recipientWalletAddress,
   userUUID,
   subWalletUuid,
-  showCardPayment = true
+  showCardPayment = true,
+  qrPaymentWallets
 }: PaymentLinkCheckoutProps) {
   const [selectedTab, setSelectedTab] = useState("wallet")
 
@@ -106,6 +107,7 @@ export function PaymentLinkCheckout({
           userUUID={userUUID}
           subWalletUuid={subWalletUuid}
           showCardPayment={showCardPayment}
+          qrPaymentWallets={qrPaymentWallets}
         />
       </CardContent>
       <CardFooter className="flex justify-center text-sm text-muted-foreground">

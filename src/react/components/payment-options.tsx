@@ -30,7 +30,8 @@ export function PaymentOptions({
   paymentLinkId,
   userUUID,
   subWalletUuid,
-  showCardPayment = true
+  showCardPayment = true,
+  qrPaymentWallets
 }: PaymentOptionsProps) {
   const [selectedTab, setSelectedTab] = useState<string>(defaultTab)
 
@@ -91,6 +92,7 @@ export function PaymentOptions({
           paymentLinkId={paymentLinkId}
           userUUID={userUUID}
           subWalletUuid={subWalletUuid}
+          qrPaymentWallets={qrPaymentWallets}
         />
       </TabsContent>
 

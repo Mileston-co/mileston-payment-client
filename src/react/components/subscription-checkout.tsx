@@ -32,7 +32,8 @@ export function SubscriptionCheckout({
   recipientWalletAddress,
   userUUID,
   subWalletUuid,
-  showCardPayment = true
+  showCardPayment = true,
+  qrPaymentWallets
 }: SubscriptionCheckoutProps) {
   const [selectedTab, setSelectedTab] = useState("wallet")
 
@@ -114,6 +115,7 @@ export function SubscriptionCheckout({
           userUUID={userUUID}
           subWalletUuid={subWalletUuid}
           showCardPayment={showCardPayment}
+          qrPaymentWallets={qrPaymentWallets}
         />
       </CardContent>
       <CardFooter className="flex flex-col gap-2 text-sm text-muted-foreground">

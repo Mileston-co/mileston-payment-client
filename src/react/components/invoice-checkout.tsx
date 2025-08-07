@@ -37,7 +37,8 @@ export function InvoiceCheckout({
   recipientWalletAddress,
   userUUID,
   subWalletUuid,
-  showCardPayment = true
+  showCardPayment = true,
+  qrPaymentWallets
 }: InvoiceCheckoutProps) {
   const [selectedTab, setSelectedTab] = useState("wallet")
 
@@ -96,6 +97,7 @@ export function InvoiceCheckout({
           userUUID={userUUID}
           subWalletUuid={subWalletUuid}
           showCardPayment={showCardPayment}
+          qrPaymentWallets={qrPaymentWallets}
         />
       </CardContent>
 

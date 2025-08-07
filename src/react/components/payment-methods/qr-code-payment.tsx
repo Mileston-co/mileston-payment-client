@@ -23,7 +23,8 @@ export function QrCodePayment({
   env,
   paymentLinkId,
   userUUID,
-  subWalletUuid
+  subWalletUuid,
+  qrPaymentWallets
 }: QrCodePaymentProps) {
   const [effectiveWalletAddress, setEffectiveWalletAddress] = useState(recipientWalletAddress);
   const tokens = getSupportedTokens(effectiveWalletAddress, env)
@@ -39,6 +40,7 @@ export function QrCodePayment({
   const [paymentVerified, setPaymentVerified] = useState(false)
 
   const { fetchWallet, loading: fetchingWallet, wallet } = useGetPaymentWallet()
+  const [localWallet, setLocalWallet] = useState<any>(null)
   const { verify, loading: verifyingPayment } = useVerifyPaymentWithWallet()
   const { businessid, apikey } = usePaymentContext()
   const { data: subWalletData, error: subWalletError, loading: fetchingSubWallets, refetch } = useSubWallets({
@@ -66,7 +68,7 @@ export function QrCodePayment({
     fetchSubWalletData();
   }, [subWalletUuid, subWalletData]);
 
-  const qrCodeValue = wallet?.publicKey || "placeholder"
+  const qrCodeValue = (localWallet || wallet)?.publicKey || "placeholder"
   const dataUrl = useQRCode(qrCodeValue)
 
   const availableTokens = tokens.filter((token) => token.networkId === selectedNetwork)
@@ -95,18 +97,39 @@ export function QrCodePayment({
       try {
         let walletType: WalletType = 'evm';
         let options: any = {};
+        
         if (selectedNetwork === 'sui') {
           walletType = 'sui';
         } else if (selectedNetwork === 'solana') {
           walletType = 'solana';
         } else {
-          // EVM: pass evmChain, env, merchant
-          options = {
-            evmChain: selectedNetwork,
-            env,
-            merchant: eth ?? base ?? pol ?? avax ?? arb,
-          };
+          // EVM: Check if QR payment wallet already exists
+          const existingQrWallet = qrPaymentWallets?.find(
+            qw => qw.chain === selectedNetwork && qw.env === env
+          );
+          
+          if (existingQrWallet) {
+            // Use existing QR payment wallet - set wallet data directly
+            console.log('Using existing QR payment wallet:', existingQrWallet);
+            setLocalWallet({
+              publicKey: existingQrWallet.address,
+              qrCodeId: existingQrWallet.qrCodeId,
+              type: selectedNetwork,
+              address: existingQrWallet.address,
+              balance: "0"
+            });
+            setShowQrCode(true);
+            return; // Don't call fetchWallet since we have the data
+          } else {
+            // Create new QR payment wallet
+            options = {
+              evmChain: selectedNetwork,
+              env,
+              merchant: eth ?? base ?? pol ?? avax ?? arb,
+            };
+          }
         }
+        
         await fetchWallet(walletType, options)
         setShowQrCode(true)
       } catch (error) {
@@ -116,8 +139,9 @@ export function QrCodePayment({
   }
 
   const copyToClipboard = () => {
-    if (!wallet?.publicKey) return
-    navigator.clipboard.writeText(wallet.publicKey)
+    const currentWallet = localWallet || wallet;
+    if (!currentWallet?.publicKey) return
+    navigator.clipboard.writeText(currentWallet.publicKey)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
@@ -141,14 +165,15 @@ export function QrCodePayment({
   
   const [verifying, setVerifying] = useState(false);
   const handleVerifyPayment = async () => {
-    if (!wallet?.publicKey || !selectedTokenObj || !selectedNetworkObj) return;
+    if (!(localWallet || wallet)?.publicKey || !selectedTokenObj || !selectedNetworkObj) return;
     setVerifying(true);
     try {
       // For EVM, pass evmChain and walletAddress
       const isEvm = ["eth", "avax", "pol", "base", "arb"].includes(selectedNetwork);
+      const currentWallet = localWallet || wallet;
       const paymentDto: any = {
         paymentLinkId,
-        publicKey: wallet.publicKey,
+        publicKey: currentWallet?.publicKey,
         amount,
         recipientWalletAddress: selectedNetwork === 'sui' 
           ? sui 
@@ -163,7 +188,7 @@ export function QrCodePayment({
       };
       if (isEvm) {
         paymentDto.evmChain = selectedNetwork;
-        paymentDto.walletAddress = wallet.publicKey;
+        paymentDto.walletAddress = currentWallet?.publicKey;
       }
       const result = await verify(
         paymentType,
@@ -322,7 +347,7 @@ export function QrCodePayment({
 
               <div className="flex items-center justify-between p-2 bg-muted rounded-md">
                 <code className="text-xs font-mono truncate max-w-[200px] text-center flex items-enter justify-center">
-                  {wallet?.publicKey ? `${wallet.publicKey.slice(0, 13)}...${wallet.publicKey.slice(-4)}` : "No address available"}
+                  {(localWallet || wallet)?.publicKey ? `${(localWallet || wallet)?.publicKey?.slice(0, 13)}...${(localWallet || wallet)?.publicKey?.slice(-4)}` : "No address available"}
                 </code>
                 <Button variant="ghost" size="sm" onClick={copyToClipboard} className="h-8 px-2">
                   {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
