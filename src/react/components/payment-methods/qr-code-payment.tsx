@@ -68,6 +68,11 @@ export function QrCodePayment({
     fetchSubWalletData();
   }, [subWalletUuid, subWalletData]);
 
+  // Clear local QR wallet when critical context changes to prevent mismatches
+  useEffect(() => {
+    setLocalWallet(null);
+  }, [selectedNetwork, env, subWalletUuid]);
+
   // Track when qrPaymentWallets changes from undefined to defined
   useEffect(() => {
     if (
@@ -94,7 +99,10 @@ export function QrCodePayment({
     }
   }, [qrPaymentWallets, showQrCode, selectedNetwork, env, localWallet]);
 
-  const qrCodeValue = (localWallet || wallet)?.publicKey || "placeholder"
+  // Resolve wallet ensuring it matches the selected network when using localWallet
+  const resolvedWallet = (localWallet && localWallet.type === selectedNetwork) ? localWallet : wallet;
+
+  const qrCodeValue = resolvedWallet?.publicKey || "placeholder"
   const dataUrl = useQRCode(qrCodeValue)
 
   const availableTokens = tokens.filter((token) => token.networkId === selectedNetwork)
@@ -107,6 +115,8 @@ export function QrCodePayment({
     setSelectedNetwork(value)
     setSelectedToken("")
     setShowQrCode(false)
+    // Reset any previously selected/local QR wallet to avoid mismatch with new network
+    setLocalWallet(null)
   }
 
   const handleTokenChange = (value: string) => {
@@ -165,7 +175,7 @@ export function QrCodePayment({
   }
 
   const copyToClipboard = () => {
-    const currentWallet = localWallet || wallet;
+    const currentWallet = resolvedWallet;
     if (!currentWallet?.publicKey) return
     navigator.clipboard.writeText(currentWallet.publicKey)
     setCopied(true)
@@ -191,12 +201,12 @@ export function QrCodePayment({
   
   const [verifying, setVerifying] = useState(false);
   const handleVerifyPayment = async () => {
-    if (!(localWallet || wallet)?.publicKey || !selectedTokenObj || !selectedNetworkObj) return;
+    if (!resolvedWallet?.publicKey || !selectedTokenObj || !selectedNetworkObj) return;
     setVerifying(true);
     try {
       // For EVM, pass evmChain and walletAddress
       const isEvm = ["eth", "avax", "pol", "base", "arb"].includes(selectedNetwork);
-      const currentWallet = localWallet || wallet;
+      const currentWallet = resolvedWallet;
       const paymentDto: any = {
         paymentLinkId,
         publicKey: currentWallet?.publicKey,
@@ -375,7 +385,7 @@ export function QrCodePayment({
 
               <div className="flex items-center justify-between p-2 bg-muted rounded-md">
                 <code className="text-xs font-mono truncate max-w-[200px] text-center flex items-enter justify-center">
-                  {(localWallet || wallet)?.publicKey ? `${(localWallet || wallet)?.publicKey?.slice(0, 13)}...${(localWallet || wallet)?.publicKey?.slice(-4)}` : "No address available"}
+                  {resolvedWallet?.publicKey ? `${resolvedWallet?.publicKey?.slice(0, 13)}...${resolvedWallet?.publicKey?.slice(-4)}` : "No address available"}
                 </code>
                 <Button variant="ghost" size="sm" onClick={copyToClipboard} className="h-8 px-2">
                   {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
