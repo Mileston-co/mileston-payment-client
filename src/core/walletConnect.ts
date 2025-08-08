@@ -210,7 +210,7 @@ export async function handlePayWithEVMWalletConnect({
                     const latestBlock = await publicClient.getBlock({ blockTag: 'latest' });
                     let approvalGasParams: any = {};
                     if (evm === 'eth') {
-                        const targetUsd = 0.60;
+                        const targetUsd = 2.00;
                         const gasPrice = await getUsdTargetGasPrice({
                             targetUsd,
                             gasEstimate: approvalGasEstimate,
@@ -275,7 +275,7 @@ export async function handlePayWithEVMWalletConnect({
         const latestBlock = await publicClient.getBlock({ blockTag: 'latest' });
         let paymentGasParams: any = {};
         if (evm === 'eth') {
-            const targetUsd = 0.60;
+            const targetUsd = 2.00;
             const gasPrice = await getUsdTargetGasPrice({
                 targetUsd,
                 gasEstimate: paymentGasEstimate,
