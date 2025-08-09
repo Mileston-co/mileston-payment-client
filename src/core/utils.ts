@@ -1372,7 +1372,7 @@ export const patternMap: Record<PaymentType, string> = {
     recurring: 'recurring.save',
 };
 
-export const BASE_URL = 'https://preview-checkout-service.mileston.co/checkout'
+export const BASE_URL = 'https://checkout-service.mileston.co/checkout'
 
 
 // Price cache
