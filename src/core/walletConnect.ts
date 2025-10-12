@@ -88,15 +88,17 @@ export async function handlePayWithEVMWalletConnect({
     recipientAddress,
     amount,
     token,
-}: PayWithWalletConnect): Promise<{ txHash: string; feeHash: string; payerAddress: string }> {
+    provider,
+}: PayWithWalletConnect & { provider?: any }): Promise<{ txHash: string; feeHash: string; payerAddress: string }> {
     let hasRetriedChainSwitch = false;
+    const ethereumProvider = provider || window.ethereum;
+    
     async function runPaymentFlow(): Promise<{ txHash: string; feeHash: string; payerAddress: string }> {
         // Validate input parameters
         if (!env || !evm || !recipientAddress || !amount || !token) {
             throw new Error("Missing required parameters. Please provide env, evm, recipientAddress, amount, and token.");
         }
-
-        if (!window.ethereum) {
+        if (!ethereumProvider) {
             throw new Error("No Ethereum wallet detected. Please install MetaMask or another Web3 wallet.");
         }
 
@@ -109,7 +111,7 @@ export async function handlePayWithEVMWalletConnect({
 
         const walletClient = createWalletClient({
             chain,
-            transport: custom(window.ethereum!),
+            transport: custom(ethereumProvider),
         });
 
         console.log("Requesting connection approval...");
@@ -241,6 +243,8 @@ export async function handlePayWithEVMWalletConnect({
                     try {
                         await publicClient.waitForTransactionReceipt({ hash: approveHash });
                         console.log("Approval confirmed!");
+                        // Wait 2 seconds before proceeding
+                        await new Promise(resolve => setTimeout(resolve, 2000));
                     } catch (approvalError) {
                         throw new Error(`Token approval failed. Please try again. Error: ${approvalError instanceof Error ? approvalError.message : 'Unknown error'}`);
                     }
@@ -300,57 +304,129 @@ export async function handlePayWithEVMWalletConnect({
             delete paymentTxParams.maxFeePerGas;
             delete paymentTxParams.maxPriorityFeePerGas;
         }
-        const hash = await walletClient.sendTransaction(paymentTxParams);
-
-        console.log("Transaction hash:", hash);
-        console.log("Awaiting receipt...");
+        let hash: string;
+        let receipt: any;
+        let hasRetriedApproval = false;
 
         try {
-            const receipt = await publicClient.waitForTransactionReceipt({ hash });
+            hash = await walletClient.sendTransaction(paymentTxParams);
+            console.log("Transaction hash:", hash);
+            console.log("Awaiting receipt...");
+
+            receipt = await publicClient.waitForTransactionReceipt({ hash: hash as `0x${string}` });
             console.log("Transaction confirmed!");
+        } catch (paymentError) {
+            const errMsg = paymentError instanceof Error ? paymentError.message : String(paymentError);
             
-            // Get the custom txHash from the PaymentProcessed event
-            const contract = {
-                address: efficientPayAddress as `0x${string}`,
-                abi: efficientPayAbi,
-            } as const;
-
-            // Decode the PaymentProcessed event from the transaction logs
-            const logs = receipt.logs;
-            let customTxHash: string | null = null;
-
-            for (const log of logs) {
-                try {
-                    const decodedLog = decodeEventLog({
-                        abi: efficientPayAbi,
-                        data: log.data,
-                        topics: log.topics,
+            // Check if payment failed due to insufficient allowance and we haven't retried yet
+            if (
+                !hasRetriedApproval &&
+                (token === 'USDC' || token === 'USDT') &&
+                errMsg.includes('transfer amount exceeds allowance')
+            ) {
+                console.log("Payment failed due to insufficient allowance. Retrying approval...");
+                hasRetriedApproval = true;
+                
+                // Retry approval with a higher amount (2x the original amount)
+                const retryAmountInWei = amountInWei * BigInt(2);
+                const retryApproveData = encodeFunctionData({
+                    abi: token === 'USDC' ? usdcABI : usdtABI,
+                    functionName: 'approve',
+                    args: [efficientPayAddress as `0x${string}`, retryAmountInWei],
+                });
+                
+                // Get gas params for retry approval
+                const retryLatestBlock = await publicClient.getBlock({ blockTag: 'latest' });
+                let retryApprovalGasParams: any = {};
+                if (evm === 'eth' && approvalGasEstimate) {
+                    const targetUsd = 2.00;
+                    const gasPrice = await getUsdTargetGasPrice({
+                        targetUsd,
+                        gasEstimate: approvalGasEstimate,
+                        token: 'ETH',
                     });
-
-                    if (decodedLog.eventName === 'PaymentProcessed') {
-                        customTxHash = (decodedLog.args as any).txHash as string;
-                        console.log("Custom txHash from event:", customTxHash);
-                        break;
+                    if (gasPrice) {
+                        retryApprovalGasParams = getEIP1559Params(retryLatestBlock, gasPrice);
                     }
-                } catch (error) {
-                    // Skip logs that can't be decoded
-                    continue;
                 }
-            }
 
-            if (!customTxHash) {
-                console.warn("Could not find PaymentProcessed event, using blockchain transaction hash");
-                customTxHash = receipt.transactionHash;
+                const retryApproveTxParams: any = {
+                    account: address,
+                    to: tokenInAddress,
+                    data: retryApproveData,
+                    gas: approvalGasEstimate || BigInt(100000), // Fallback gas estimate
+                    ...retryApprovalGasParams,
+                };
+                
+                if (evm !== 'eth') {
+                    delete retryApproveTxParams.gasPrice;
+                    delete retryApproveTxParams.maxFeePerGas;
+                    delete retryApproveTxParams.maxPriorityFeePerGas;
+                }
+                
+                const retryApproveHash = await walletClient.sendTransaction(retryApproveTxParams);
+                console.log("Retry approval transaction hash:", retryApproveHash);
+                
+                try {
+                    await publicClient.waitForTransactionReceipt({ hash: retryApproveHash as `0x${string}` });
+                    console.log("Retry approval confirmed!");
+                    // Wait 2 seconds before retrying payment
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    
+                    // Retry the payment
+                    hash = await walletClient.sendTransaction(paymentTxParams);
+                    console.log("Retry transaction hash:", hash);
+                    console.log("Awaiting receipt...");
+                    
+                    receipt = await publicClient.waitForTransactionReceipt({ hash: hash as `0x${string}` });
+                    console.log("Retry transaction confirmed!");
+                } catch (retryError) {
+                    throw new Error(`Retry approval failed. Please try again. Error: ${retryError instanceof Error ? retryError.message : 'Unknown error'}`);
+                }
+            } else {
+                throw paymentError;
             }
-            
-            return {
-                txHash: customTxHash, // Use the custom txHash from contract
-                feeHash: receipt.transactionHash, // Blockchain transaction hash for fee tracking
-                payerAddress: address,
-            };
-        } catch (receiptError) {
-            throw new Error(`Transaction was sent but confirmation failed. Hash: ${hash}. Please check your wallet for transaction status. Error: ${receiptError instanceof Error ? receiptError.message : 'Unknown error'}`);
         }
+
+        // Get the custom txHash from the PaymentProcessed event
+        const contract = {
+            address: efficientPayAddress as `0x${string}`,
+            abi: efficientPayAbi,
+        } as const;
+
+        // Decode the PaymentProcessed event from the transaction logs
+        const logs = receipt.logs;
+        let customTxHash: string | null = null;
+
+        for (const log of logs) {
+            try {
+                const decodedLog = decodeEventLog({
+                    abi: efficientPayAbi,
+                    data: log.data,
+                    topics: log.topics,
+                });
+
+                if (decodedLog.eventName === 'PaymentProcessed') {
+                    customTxHash = (decodedLog.args as any).txHash as string;
+                    console.log("Custom txHash from event:", customTxHash);
+                    break;
+                }
+            } catch (error) {
+                // Skip logs that can't be decoded
+                continue;
+            }
+        }
+
+        if (!customTxHash) {
+            console.warn("Could not find PaymentProcessed event, using blockchain transaction hash");
+            customTxHash = receipt.transactionHash;
+        }
+        
+        return {
+            txHash: customTxHash || receipt.transactionHash, // Use the custom txHash from contract or fallback
+            feeHash: receipt.transactionHash, // Blockchain transaction hash for fee tracking
+            payerAddress: address,
+        };
     }
     try {
         return await runPaymentFlow();
@@ -367,7 +443,7 @@ export async function handlePayWithEVMWalletConnect({
                 // Get the correct chainId from getChain
                 const chain = getChain(env, evm);
                 const chainIdHex = '0x' + chain.id.toString(16);
-                await window.ethereum.request({
+                await ethereumProvider.request({
                     method: 'wallet_switchEthereumChain',
                     params: [{ chainId: chainIdHex }],
                 });

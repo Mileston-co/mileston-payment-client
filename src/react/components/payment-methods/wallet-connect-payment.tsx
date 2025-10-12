@@ -13,6 +13,8 @@ import { handlePayWithEVMWalletConnect } from "@/core";
 import { useSavePayment, useSuiPayment, useSolanaPayment, useSubWallets } from "@/react/hooks";
 import { usePaymentContext } from "../PaymentContext";
 import { getSupportedNetworks, getSupportedTokens } from "./utils";
+import { useSyncProviders } from "../../hooks/useSyncProviders";
+import { EIP6963ProviderDetail } from "@/types/wallet-connect";
 
 export function WalletConnectPayment({
   onPaymentComplete,
@@ -28,11 +30,11 @@ export function WalletConnectPayment({
   subWalletUuid
 }: WalletConnectPaymentProps) {
   const [effectiveWalletAddress, setEffectiveWalletAddress] = useState(recipientWalletAddress);
-  
+
   // Make tokens and networks reactive to effectiveWalletAddress changes
   const tokens = getSupportedTokens(effectiveWalletAddress, env);
   const networks = getSupportedNetworks(effectiveWalletAddress);
-  
+
   const [selectedNetwork, setSelectedNetwork] = useState<string>("");
   const [selectedToken, setSelectedToken] = useState<string>("");
   const [isWalletConnected, setIsWalletConnected] = useState<boolean>(false);
@@ -48,6 +50,9 @@ export function WalletConnectPayment({
     subWalletUuid: subWalletUuid || '',
     env: env || 'test'
   });
+
+  const providers = useSyncProviders();
+  const [selectedWallet, setSelectedWallet] = useState<EIP6963ProviderDetail>()
 
   useEffect(() => {
     const fetchSubWalletData = async () => {
@@ -171,6 +176,7 @@ export function WalletConnectPayment({
           recipientAddress: eth ?? base ?? pol ?? avax ?? arb,
           amount,
           token: selectedToken as Token,
+          provider: selectedWallet?.provider,
         });
 
         await triggerSavePayment(paymentType, {
@@ -277,9 +283,9 @@ export function WalletConnectPayment({
                       <span className="text-xs text-orange-600 bg-orange-100 px-2 py-1 rounded">
                         Testnet Unavailable
                       </span>
-                      <a 
-                        href="https://docs.mileston.co/docs/mileston-sdks/testnet-limitations" 
-                        target="_blank" 
+                      <a
+                        href="https://docs.mileston.co/docs/mileston-sdks/testnet-limitations"
+                        target="_blank"
                         rel="noopener noreferrer"
                         className="text-xs text-blue-600 hover:text-blue-800 underline"
                         onClick={(e) => e.stopPropagation()}
@@ -329,14 +335,44 @@ export function WalletConnectPayment({
             {buttonText}
           </WalletMultiButton>
         ) : (
-          <Button
-            className={`w-full ${buttonClassName || ""}`}
-            disabled={!selectedNetwork || !selectedToken}
-            onClick={handlePayWithWallet}
-          >
-            <Wallet className="mr-2 h-4 w-4" />
-            {buttonText}
-          </Button>
+          <div className="w-full space-y-2">
+            {providers.length > 0 ? (
+              <Select value={selectedWallet?.info.uuid || ""} onValueChange={(value) => {
+                const provider = providers.find(p => p.info.uuid === value);
+                setSelectedWallet(provider);
+              }}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select Wallet" />
+                </SelectTrigger>
+                <SelectContent>
+                  {providers.map((provider: EIP6963ProviderDetail) => (
+                    <SelectItem key={provider.info.uuid} value={provider.info.uuid}>
+                      <div className="flex items-center gap-2">
+                        <img
+                          src={provider.info.icon}
+                          alt={provider.info.name}
+                          className="w-4 h-4 rounded"
+                        />
+                        <span>{provider.info.name}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <div className="w-full p-3 text-center text-sm text-gray-500 bg-gray-50 rounded-md border">
+                No wallet extension detected. Please install a Web3 wallet like MetaMask, Coinbase Wallet, or Trust Wallet to continue.
+              </div>
+            )}
+            <Button
+              className={`w-full ${buttonClassName || ""}`}
+              disabled={!selectedNetwork || !selectedToken || !selectedWallet}
+              onClick={handlePayWithWallet}
+            >
+              <Wallet className="mr-2 h-4 w-4" />
+              {buttonText}
+            </Button>
+          </div>
         )}
       </div>
     </div>
